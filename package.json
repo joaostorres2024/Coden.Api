@@ -1,0 +1,18 @@
+{
+  "name": "coden.api",
+  "version": "1.0.0",
+  "description": "Api Coden",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://joaoptorres0623@dev.azure.com/joaoptorres0623/Coden/_git/Coden.Api"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
