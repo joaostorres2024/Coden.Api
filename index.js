@@ -1,7 +1,20 @@
+require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
+
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => res.send('API Express Rodando!'));
+// Configuração básica de CORS para conectar com o front
+app.use(cors({
+    origin: process.env.FRONTEND_URL, // Permite conexões apenas deste endereço
+    credentials: true
+}));
 
-app.listen(port, () => console.log(`Servidor rodando em http://localhost:${port}`));
+app.get('/', (req, res) => {
+    res.send('API Conectada');
+});
+
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
