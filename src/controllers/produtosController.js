@@ -1,10 +1,10 @@
-const productService = require("../services/productService");
+const produtosService = require("../services/produtosService");
 
 async function registerProduct(req, res){
     try {
         const { estabelecimento_id } = req.user;
 
-        const product = await productService.createProduct({
+        const product = await produtosService.createProduct({
             ...req.body,
             estabelecimento_id
         });
@@ -22,7 +22,7 @@ async function registerProduct(req, res){
 async function getAllProducts(req, res){
     try {
         const { estabelecimento_id } = req.user;
-        const products = await productService.getAllProducts({estabelecimento_id});
+        const products = await produtosService.getAllProducts({estabelecimento_id});
         res.status(200).json(products);
     }
     catch(err){
@@ -34,7 +34,7 @@ async function getAllProducts(req, res){
 async function getProduct(req, res){
     try {
         const { id } = req.params;
-        const product = await productService.getProduct({id});
+        const product = await produtosService.getProduct({id});
         res.status(200).json(product);
     }
     catch(err){
@@ -48,7 +48,7 @@ async function deleteProduct(req, res) {
         const { id } = req.params;
         const { estabelecimento_id } = req.user;
 
-        await productService.deleteProduct({id, estabelecimento_id});
+        await produtosService.deleteProduct({id, estabelecimento_id});
         res.status(200).json({ message: "Produto deletado" });
     }
     catch(err){
@@ -63,7 +63,7 @@ async function updateProduct(req, res) {
         const { nome, preco, tipo} = req.body;
         const { estabelecimento_id} = req.user;
 
-        const product = await productService.updateProduct({id, nome, preco, tipo, estabelecimento_id});
+        const product = await produtosService.updateProduct({id, nome, preco, tipo, estabelecimento_id});
         res.status(200).json({
             message: "Produto editado:",
             product

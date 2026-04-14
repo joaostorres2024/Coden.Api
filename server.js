@@ -6,7 +6,7 @@ app.use(express.json());
 
 // ROTAS
 const authRoutes = require("./src/routes/authRoutes");
-const productRoutes = require("./src/routes/productRoutes");
+const productRoutes = require("./src/routes/produtosRoutes");
 
 app.use("/auth", authRoutes);
 app.use(productRoutes);
