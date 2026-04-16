@@ -2,6 +2,13 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 
+const cors = require('cors')
+
+app.use(cors({
+  origin: 'http://localhost:8080',
+  credentials: true
+}))
+
 app.use(express.json());
 
 // ROTAS
@@ -16,8 +23,8 @@ const db = require("./src/config/db");
 
 async function testarConexao() {
     try {
-        await db.query("SELECT 1");
-        console.log("Banco conectado");
+        await db.query("SELECT 1 as test");
+        console.log("Banco conectado com Sucesso!");
     } catch (err) {
         console.error("Erro ao conectar ", err);
     }
@@ -27,10 +34,10 @@ testarConexao();
 
 // ROTA BASE
 app.get("/", (req, res) => {
-  res.send("API de vendas rodando 🚀");
+  res.send("API Rodando com Sucesso!");
 });
 
 // SERVIDOR POR ÚLTIMO
 app.listen(3000, () => {
-  console.log("rodando porta 3000");
+  console.log("API Rodando na Porta 3000");
 });

@@ -13,6 +13,7 @@ async function register(req, res) {
 async function login(req, res) {
     try {
         const { email, senha } = req.body;
+        console.log('BODY RECEBIDO:', req.body)
         const token = await authService.login(email, senha);
 
         res.json({ token });
