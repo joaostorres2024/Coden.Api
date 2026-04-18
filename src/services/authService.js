@@ -8,6 +8,7 @@ async function login(email, senha) {
         [email]
     );
 
+    
     const user = rows[0];
 
     if (!user) {
