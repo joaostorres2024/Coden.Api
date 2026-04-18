@@ -19,11 +19,12 @@ app.use("/auth", authRoutes);
 app.use(productRoutes);
 
 // TESTE DE CONEXÃO
-const db = require("./src/config/db");
+const { poolPromise } = require("./src/config/db");
 
 async function testarConexao() {
     try {
-        await db.query("SELECT 1 as test");
+        const pool = await poolPromise;
+        await pool.request().query("SELECT 1 as test");
         console.log("Banco conectado com Sucesso!");
     } catch (err) {
         console.error("Erro ao conectar ", err);

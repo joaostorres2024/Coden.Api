@@ -9,26 +9,24 @@ const config = {
   port: parseInt(process.env.DB_PORT),
   options: {
     encrypt: true,
-    trustServerCertificate: false
+    trustServerCertificate: false,
   },
   pool: {
     max: 10,
     min: 0,
-    idleTimeoutMillis: 30000
-  }
+    idleTimeoutMillis: 30000,
+  },
 };
 
-const pool = new sql.ConnectionPool(config);
-const poolConnect = pool.connect();
+const poolPromise = new sql.ConnectionPool(config)
+  .connect()
+  .then(pool => {
+    console.log('✅ Conectado ao SQL Server (Azure)');
+    return pool;
+  })
+  .catch(err => {
+    console.error('❌ Erro ao conectar no banco:', err);
+    process.exit(1);
+  });
 
-const db = {
-  query: async (query, params = []) => {
-    await poolConnect;
-    const request = pool.request();
-    params.forEach((param, i) => request.input(`p${i}`, param));
-    const queryFormatted = query.replace(/\?/g, (_, i) => `@p${i++}`);
-    return request.query(queryFormatted);
-  }
-};
-
-module.exports = db;
+module.exports = { sql, poolPromise };

@@ -12,9 +12,9 @@ async function register(req, res) {
 
 async function login(req, res) {
     try {
-        const { email, senha } = req.body;
+        const { usuario, senha } = req.body;
         console.log('BODY RECEBIDO:', req.body)
-        const token = await authService.login(email, senha);
+        const token = await authService.login(usuario, senha);
 
         res.json({ token });
     } catch (err) {
