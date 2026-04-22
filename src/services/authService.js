@@ -3,13 +3,12 @@ const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 
 async function login(email, senha) {
-    const [rows] = await db.query(
+    const result = await db.query(
         "SELECT * FROM usuarios WHERE email = ?",
         [email]
     );
 
-    
-    const user = rows[0];
+    const user = result.recordset[0];
 
     if (!user) {
         throw new Error("Usuário não encontrado");
@@ -22,26 +21,23 @@ async function login(email, senha) {
     }
 
     const token = jwt.sign(
-    { 
-        id: user.id, 
-        email: user.email,
-        estabelecimento_id: user.estabelecimento_id
-    },
-    process.env.JWT_SECRET, { expiresIn: "1d" });
+        { id: user.id, usuario: user.usuario, estabelecimento_id: user.estabelecimento_id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+    );
 
-        return token;
+    return token;
 }
 
 async function createUser({ nome, email, senha, estabelecimento_id }) {
     const senhaHash = await bcrypt.hash(senha, 10);
-
     await db.query(
         "INSERT INTO usuarios (nome, email, senha, estabelecimento_id) VALUES (?, ?, ?, ?)",
         [nome, email, senhaHash, estabelecimento_id]
     );
 }
-async function createEstabelecimento({ id, nome, cnpj, cep }) {
 
+async function createEstabelecimento({ id, nome, cnpj, cep }) {
     await db.query(
         "INSERT INTO estabelecimentos (id, nome, cnpj, cep) VALUES (?, ?, ?, ?)",
         [id, nome, cnpj, cep]
