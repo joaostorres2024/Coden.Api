@@ -19,6 +19,8 @@ app.use("/auth", authRoutes);
 app.use(productRoutes);
 
 // TESTE DE CONEXÃO
+const { poolPromise } = require("./src/config/db");
+
 const db = require("./src/config/db");
 
 async function testarConexao() {
