@@ -40,6 +40,7 @@ app.get("/", (req, res) => {
 });
 
 // SERVIDOR POR ÚLTIMO
-app.listen(3000, () => {
-  console.log("API Rodando na Porta 3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`API Rodando na Porta ${PORT}`);
 });
