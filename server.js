@@ -5,8 +5,8 @@ require("dotenv").config();
 const cors = require('cors')
 
 app.use(cors({
-  origin: 'http://localhost:8080',
-  credentials: true
+  origin: '*',
+  credentials: false
 }))
 
 app.use(express.json());
