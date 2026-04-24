@@ -22,14 +22,4 @@ async function login(req, res) {
     }
 }
 
-async function registerestabelecimento(req, res) {
-    try {
-        await authService.createEstabelecimento(req.body);
-        res.status(201).send("Estabelecimento criado");
-    } catch (err) {
-        console.error(err); 
-        res.status(500).send(err.message);
-    }
-}
-
-module.exports = { register, login, registerestabelecimento };
+module.exports = { register, login };

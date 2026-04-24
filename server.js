@@ -2,31 +2,28 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 
-const cors = require('cors')
-
-app.use(cors({
-  origin: 'http://localhost:8080',
-  credentials: true
-}))
-
 app.use(express.json());
 
 // ROTAS
 const authRoutes = require("./src/routes/authRoutes");
-const productRoutes = require("./src/routes/produtosRoutes");
+const productRoutes = require("./src/routes/productRoutes");
+const vendasRoutes = require("./src/routes/vendasRoutes");
+const clienteRoutes = require("./src/routes/clienteRoutes");
+const itensVendaRoutes = require("./src/routes/itensVendaRoutes");
 
 app.use("/auth", authRoutes);
 app.use(productRoutes);
+app.use("/api", vendasRoutes);
+app.use("/api", clienteRoutes);
+app.use("/api", itensVendaRoutes);
 
 // TESTE DE CONEXÃO
-const { poolPromise } = require("./src/config/db");
-
 const db = require("./src/config/db");
 
 async function testarConexao() {
     try {
-        await db.query("SELECT 1 as test");
-        console.log("Banco conectado com Sucesso!");
+        await db.query("SELECT 1");
+        console.log("Banco conectado");
     } catch (err) {
         console.error("Erro ao conectar ", err);
     }
@@ -36,10 +33,10 @@ testarConexao();
 
 // ROTA BASE
 app.get("/", (req, res) => {
-  res.send("API Rodando com Sucesso!");
+  res.send("API de vendas rodando 🚀");
 });
 
 // SERVIDOR POR ÚLTIMO
 app.listen(3000, () => {
-  console.log("API Rodando na Porta 3000");
+  console.log("rodando porta 3000");
 });
