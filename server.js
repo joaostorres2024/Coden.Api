@@ -18,7 +18,7 @@ const clienteRoutes = require("./src/routes/clienteRoutes");
 const itensVendaRoutes = require("./src/routes/itensVendaRoutes");
 
 app.use("/auth", authRoutes);
-app.use(productRoutes);
+app.use("/api", productRoutes)
 app.use("/api", vendasRoutes);
 app.use("/api", clienteRoutes);
 app.use("/api", itensVendaRoutes);
