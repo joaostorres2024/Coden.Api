@@ -1,6 +1,12 @@
 const express = require("express");
 const app = express();
 require("dotenv").config();
+const cors = require('cors')
+
+app.use(cors({
+  origin: '*',
+  credentials: false
+}))
 
 app.use(express.json());
 
@@ -33,10 +39,11 @@ testarConexao();
 
 // ROTA BASE
 app.get("/", (req, res) => {
-  res.send("API de vendas rodando 🚀");
+  res.send("API Rodando com Sucesso!");
 });
 
 // SERVIDOR POR ÚLTIMO
-app.listen(3000, () => {
-  console.log("rodando porta 3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`API Rodando na Porta ${PORT}`);
 });
