@@ -29,4 +29,9 @@ async function query(queryString, params = []) {
     return result.recordset;
 }
 
-module.exports = { query, getPool, sql };
+async function request() {
+    const pool = await getPool();
+    return pool.request();
+}
+
+module.exports = { query, getPool, request, sql };

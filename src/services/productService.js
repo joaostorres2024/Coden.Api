@@ -1,4 +1,4 @@
-const db = require("../config/db");
+const { request } = require("../config/db");
 
 // Criar produto
 async function createProduct(data) {
@@ -19,7 +19,8 @@ async function createProduct(data) {
         observacoes
     } = data;
 
-    const result = await db.request()
+    const req = await request()
+    const result = await req
         .input("nome_produto", nome_produto)
         .input("preco", preco)
         .input("grupo", grupo)
@@ -52,7 +53,8 @@ async function createProduct(data) {
 
 // Listar
 async function getAllProducts({ estabelecimento_id }) {
-    const result = await db.request()
+    const req = await request()
+    const result = await req
         .input("estabelecimento_id", estabelecimento_id)
         .query("SELECT * FROM produtos WHERE estabelecimento_id = @estabelecimento_id");
 
@@ -61,7 +63,8 @@ async function getAllProducts({ estabelecimento_id }) {
 
 // Buscar
 async function getProduct({ id, estabelecimento_id }) {
-    const result = await db.request()
+    const req = await request()
+    const result = await req
         .input("id", id)
         .input("estabelecimento_id", estabelecimento_id)
         .query("SELECT * FROM produtos WHERE id = @id AND estabelecimento_id = @estabelecimento_id");
@@ -93,7 +96,8 @@ async function updateProduct(data) {
         observacoes
     } = data;
 
-    const result = await db.request()
+    const req = await request()
+    const result = await req
         .input("id", id)
         .input("nome_produto", nome_produto)
         .input("preco", preco)
@@ -136,7 +140,8 @@ async function updateProduct(data) {
 
 // Deletar
 async function deleteProduct({ id, estabelecimento_id }) {
-    const result = await db.request()
+    const req = await request()
+    const result = await req
         .input("id", id)
         .input("estabelecimento_id", estabelecimento_id)
         .query("DELETE FROM produtos WHERE id = @id AND estabelecimento_id = @estabelecimento_id");
