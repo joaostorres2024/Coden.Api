@@ -35,12 +35,18 @@ async function login(email, senha) {
 }
 
 async function createUser({ nome, email, senha }) {
-    const senhaHash = await bcrypt.hash(senha, 10);
+    const senhaHash = await bcrypt.hash(senha, 10)
+
+    const rows = await query(
+        "INSERT INTO estabelecimentos (nome) OUTPUT INSERTED.id VALUES (@param0)",
+        [nome + ' - Estabelecimento']
+    )
+    const estabelecimento_id = rows[0].id
 
     await query(
         "INSERT INTO usuarios (nome, email, senha, estabelecimento_id) VALUES (@param0, @param1, @param2, @param3)",
-        [nome, email, senhaHash, 1]
-    );
+        [nome, email, senhaHash, estabelecimento_id]
+    )
 }
 
 module.exports = { login, createUser };
