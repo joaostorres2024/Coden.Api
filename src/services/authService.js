@@ -24,6 +24,7 @@ async function login(email, senha) {
         { 
             id: user.id, 
             email: user.email,
+            nome: user.nome,
             estabelecimento_id: user.estabelecimento_id
         },
         process.env.JWT_SECRET, 

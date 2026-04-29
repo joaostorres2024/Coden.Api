@@ -185,10 +185,24 @@ async function deletarCliente({ id, estabelecimento_id }) {
     }
 }
 
+async function proximoCodigoCliente({ estabelecimento_id }) {
+    const req = await request()
+    const result = await req
+        .input("estabelecimento_id", estabelecimento_id)
+        .query(`
+            SELECT ISNULL(MAX(CAST(codigo_cliente AS INT)), 0) + 1 AS proximo_codigo
+            FROM clientes
+            WHERE estabelecimento_id = @estabelecimento_id
+            AND ISNUMERIC(codigo_cliente) = 1
+        `)
+    return result.recordset[0].proximo_codigo
+}
+
 module.exports = {
     criarCliente,
     listarClientes,
     buscarCliente,
     atualizarCliente,
-    deletarCliente
+    deletarCliente,
+    proximoCodigoCliente 
 }

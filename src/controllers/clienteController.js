@@ -60,10 +60,21 @@ async function deletarCliente(req, res) {
     }
 }
 
+async function proximoCodigoCliente(req, res) {
+    try {
+        const { estabelecimento_id } = req.user
+        const codigo = await clienteService.proximoCodigoCliente({ estabelecimento_id })
+        return res.json({ codigo })
+    } catch (err) {
+        return res.status(500).json({ erro: err.message })
+    }
+}
+
 module.exports = {
     criarCliente,
     listarClientes,
     buscarCliente,
     atualizarCliente,
-    deletarCliente
+    deletarCliente,
+    proximoCodigoCliente
 }
