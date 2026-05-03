@@ -4,6 +4,7 @@ require("dotenv").config();
 const cors = require('cors')
 
 app.use((req, res, next) => {
+  if (req.path === '/ml/auth/callback') return next()
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   next()
 })
@@ -21,23 +22,35 @@ const productRoutes = require("./src/routes/productRoutes");
 const vendasRoutes = require("./src/routes/vendasRoutes");
 const clienteRoutes = require("./src/routes/clienteRoutes");
 const itensVendaRoutes = require("./src/routes/itensVendaRoutes");
+const nfEntradaRoutes = require("./src/routes/nfEntradaRoutes");
+const mlRoutes = require("./src/routes/mlRoutes");
+const mlProdutoRoutes = require('./src/routes/mlProdutoRoutes');
+const mlPedidoRoutes = require('./src/routes/mlPedidoRoutes');
+const mlNotificacaoRoutes = require('./src/routes/mlNotificacaoRoutes');
+const mlEstoqueRoutes = require('./src/routes/mlEstoqueRoutes');
 
 app.use("/auth", authRoutes);
 app.use("/api", productRoutes)
 app.use("/api", vendasRoutes);
 app.use("/api", clienteRoutes);
 app.use("/api", itensVendaRoutes);
+app.use("/api", nfEntradaRoutes);
+app.use("/ml", mlRoutes);
+app.use('/ml', mlProdutoRoutes);
+app.use('/ml', mlPedidoRoutes);
+app.use('/ml', mlNotificacaoRoutes);
+app.use('/ml', mlEstoqueRoutes);
 
 // TESTE DE CONEXÃO
 const db = require("./src/config/db");
 
 async function testarConexao() {
-    try {
-        await db.query("SELECT 1");
-        console.log("Banco conectado");
-    } catch (err) {
-        console.error("Erro ao conectar ", err);
-    }
+  try {
+    await db.query("SELECT 1");
+    console.log("Banco conectado");
+  } catch (err) {
+    console.error("Erro ao conectar ", err);
+  }
 }
 
 testarConexao();
