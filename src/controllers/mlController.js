@@ -1,5 +1,5 @@
 const axios = require('axios');
-const mlConfig = require('../config/mercadolivre');
+const mlConfig = require('../config/mercadoLivre');
 const { salvarToken, getToken, deletarToken } = require('../services/mlService');
 
 const jwt = require('jsonwebtoken');
