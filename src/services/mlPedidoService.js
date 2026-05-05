@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { mlGet, getAccessToken } = require('./mlService');
-const mlConfig = require('../config/mercadolivre');
+const mlConfig = require('../config/mercadoLivre');
 
 // Lista pedidos do usuário
 async function listarPedidos(userId, offset = 0, limit = 50) {

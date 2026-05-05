@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { request, sql } = require('../config/db');
-const mlConfig = require('../config/mercadolivre');
+const mlConfig = require('../config/mercadoLivre');
 
 async function getToken(userId) {
   const req = await request();

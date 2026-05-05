@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { mlGet, getAccessToken } = require('./mlService');
-const mlConfig = require('../config/mercadolivre');
+const mlConfig = require('../config/mercadoLivre');
 
 // Busca o seller_id do usuário no ML
 async function getSellerid(userId) {

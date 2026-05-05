@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { mlGet, getAccessToken } = require('./mlService');
-const mlConfig = require('../config/mercadolivre');
+const mlConfig = require('../config/mercadoLivre');
 
 // Busca estoque de um item
 async function buscarEstoque(userId, itemId) {
