@@ -1,8 +1,10 @@
-const express = require("express");
-const router = express.Router();
-const itensVendaController = require("../controllers/itensVendaController");
+const express = require('express')
+const router = express.Router()
+const itensVendaController = require('../controllers/itensVendaController')
+const authMiddleware = require('../middlewares/authMiddleware')
 
-router.post("/itens-venda", itensVendaController.adicionarItem);
-router.delete("/itens-venda/:id", itensVendaController.removerItem);
+router.get('/vendas/:venda_id/itens', authMiddleware, itensVendaController.listarItensDaVenda)
+router.post('/itens-venda', authMiddleware, itensVendaController.adicionarItem)
+router.delete('/itens-venda/:id', authMiddleware, itensVendaController.removerItem)
 
-module.exports = router;
+module.exports = router

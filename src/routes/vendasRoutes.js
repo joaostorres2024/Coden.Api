@@ -1,14 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const vendasController = require("../controllers/vendasController");
+const express = require('express')
+const router = express.Router()
+const vendasController = require('../controllers/vendasController')
+const authMiddleware = require('../middlewares/authMiddleware')
 
-router.post("/vendas", vendasController.criarVenda);
-router.get("/vendas", vendasController.listarVendas);
-router.get("/vendas/:id", vendasController.buscarVendaPorId);
-router.patch("/vendas/:id/status", vendasController.atualizarStatus);
-router.delete("/vendas/:id", vendasController.deletarVenda);
-router.post("/vendas-com-itens", vendasController.criarVendaComItens);
-router.patch("/vendas/:id/finalizar", vendasController.finalizarVenda);
-router.patch("/vendas/:id/cancelar", vendasController.cancelarVenda);
+router.post('/vendas', authMiddleware, vendasController.criarVendaComItens)
+router.get('/vendas', authMiddleware, vendasController.listarVendas)
+router.get('/vendas/:id', authMiddleware, vendasController.buscarVendaPorId)
+router.patch('/vendas/:id/cancelar', authMiddleware, vendasController.cancelarVenda)
+router.patch('/vendas/:id/finalizar', authMiddleware, vendasController.finalizarVenda)
 
-module.exports = router;
+module.exports = router

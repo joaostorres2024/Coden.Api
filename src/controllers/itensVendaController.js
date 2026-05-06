@@ -1,42 +1,35 @@
-const itensVendaService = require("../services/itensVendaService");
+const itensVendaService = require('../services/itensVendaService')
 
-// Adicionar item
 async function adicionarItem(req, res) {
-    try {
-        const { venda_id, produto_id, quantidade } = req.body;
-
-        if (venda_id == null || produto_id == null || quantidade == null) {
-            return res.status(400).json({
-                erro: "venda_id, produto_id e quantidade são obrigatórios"
-            });
-        }
-
-        const result = await itensVendaService.adicionarItem(
-            venda_id,
-            produto_id,
-            quantidade
-        );
-
-        return res.status(201).json(result);
-    } catch (error) {
-        return res.status(400).json({ erro: error.message });
-    }
+  try {
+    const { venda_id, produto_id, quantidade, desconto } = req.body
+    const estabelecimento_id = req.user.estabelecimento_id
+    if (!venda_id || !produto_id || !quantidade) return res.status(400).json({ error: 'Informe venda_id, produto_id e quantidade' })
+    const result = await itensVendaService.adicionarItem(venda_id, produto_id, quantidade, desconto, estabelecimento_id)
+    res.status(201).json(result)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
 }
 
-// Remover item
 async function removerItem(req, res) {
-    try {
-        const { id } = req.params;
-
-        const result = await itensVendaService.removerItem(id);
-
-        return res.json(result);
-    } catch (error) {
-        return res.status(400).json({ erro: error.message });
-    }
+  try {
+    const estabelecimento_id = req.user.estabelecimento_id
+    const result = await itensVendaService.removerItem(Number(req.params.id), estabelecimento_id)
+    res.json(result)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
 }
 
-module.exports = {
-    adicionarItem,
-    removerItem
-};
+async function listarItensDaVenda(req, res) {
+  try {
+    const estabelecimento_id = req.user.estabelecimento_id
+    const itens = await itensVendaService.listarItensDaVenda(Number(req.params.venda_id), estabelecimento_id)
+    res.json(itens)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+}
+
+module.exports = { adicionarItem, removerItem, listarItensDaVenda }

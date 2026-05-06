@@ -1,127 +1,148 @@
-const db = require("../config/db");
+const { request, sql } = require('../config/db')
 
-// Adicionar item
-async function adicionarItem(venda_id, produto_id, quantidade) {
+async function adicionarItem(venda_id, produto_id, quantidade, desconto = 0, estabelecimento_id) {
+  // 1. Verificar se a venda existe e pertence ao estabelecimento
+  const vendaReq = await request()
+  const vendaResult = await vendaReq
+    .input('venda_id', sql.Int, venda_id)
+    .input('estabelecimento_id', sql.Int, estabelecimento_id)
+    .query('SELECT * FROM vendas WHERE id = @venda_id AND estabelecimento_id = @estabelecimento_id')
 
-    // 🔒 BLOQUEIO
-    const [vendaRows] = await db.query(
-        "SELECT status FROM vendas WHERE id = ?",
-        [venda_id]
-    );
+  const venda = vendaResult.recordset[0]
+  if (!venda) throw new Error('Venda não encontrada')
+  if (venda.status === 'cancelada') throw new Error('Não é possível alterar uma venda cancelada')
 
-    const venda = vendaRows[0];
+  // 2. Verificar produto e estoque
+  const produtoReq = await request()
+  const produtoResult = await produtoReq
+    .input('produto_id', sql.Int, produto_id)
+    .input('estabelecimento_id', sql.Int, estabelecimento_id)
+    .query('SELECT * FROM produtos WHERE id = @produto_id AND estabelecimento_id = @estabelecimento_id')
 
-    if (!venda) throw new Error("Venda não encontrada");
+  const produto = produtoResult.recordset[0]
+  if (!produto) throw new Error('Produto não encontrado')
+  if (produto.estoque_atual < quantidade) throw new Error(`Estoque insuficiente para o produto ${produto.nome_produto}`)
 
-    if (venda.status === "PAGO") {
-        throw new Error("Não é possível alterar uma venda finalizada");
-    }
+  // 3. Calcular subtotal
+  const preco_unitario = produto.preco
+  const subtotal = (preco_unitario * quantidade) - desconto
 
-    if (venda.status === "PAGO" || venda.status === "CANCELADO") {
-        throw new Error("Não é possível alterar essa venda");
-    }
-    // produto
-    const [produtoRows] = await db.query(
-        "SELECT * FROM produtos WHERE id = ?",
-        [produto_id]
-    );
+  // 4. Inserir item
+  const itemReq = await request()
+  await itemReq
+    .input('venda_id', sql.Int, venda_id)
+    .input('produto_id', sql.Int, produto_id)
+    .input('quantidade', sql.Int, quantidade)
+    .input('preco_unitario', sql.Decimal(10, 2), preco_unitario)
+    .input('desconto', sql.Decimal(10, 2), desconto)
+    .input('subtotal', sql.Decimal(10, 2), subtotal)
+    .query(`
+      INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario, desconto, subtotal)
+      VALUES (@venda_id, @produto_id, @quantidade, @preco_unitario, @desconto, @subtotal)
+    `)
 
-    const produto = produtoRows[0];
+  // 5. Baixar estoque
+  const estoqueReq = await request()
+  await estoqueReq
+    .input('quantidade', sql.Int, quantidade)
+    .input('produto_id', sql.Int, produto_id)
+    .query('UPDATE produtos SET estoque_atual = estoque_atual - @quantidade WHERE id = @produto_id')
 
-    if (!produto) throw new Error("Produto não encontrado");
+  // 6. Recalcular totais da venda
+  await recalcularTotais(venda_id)
 
-    if (produto.estoque < quantidade) {
-        throw new Error("Estoque insuficiente");
-    }
-
-    const preco = produto.preco;
-    const subtotal = preco * quantidade;
-
-    // inserir item
-    await db.query(
-        `INSERT INTO itens_venda 
-        (venda_id, produto_id, quantidade, preco_unitario, subtotal)
-        VALUES (?, ?, ?, ?, ?)`,
-        [venda_id, produto_id, quantidade, preco, subtotal]
-    );
-
-    // atualizar estoque
-    await db.query(
-        "UPDATE produtos SET estoque = estoque - ? WHERE id = ?",
-        [quantidade, produto_id]
-    );
-
-    // atualizar total da venda
-    await db.query(
-        `UPDATE vendas 
-         SET total = (
-            SELECT IFNULL(SUM(subtotal), 0)
-            FROM itens_venda
-            WHERE venda_id = ?
-         )
-         WHERE id = ?`,
-        [venda_id, venda_id]
-    );
-
-    return { message: "Item adicionado com sucesso" };
+  return { message: 'Item adicionado com sucesso' }
 }
 
-// Remover item
-async function removerItem(item_id) {
+async function removerItem(item_id, estabelecimento_id) {
+  // 1. Buscar item
+  const itemReq = await request()
+  const itemResult = await itemReq
+    .input('item_id', sql.Int, item_id)
+    .query('SELECT * FROM itens_venda WHERE id = @item_id')
 
-    const [rows] = await db.query(
-        "SELECT * FROM itens_venda WHERE id = ?",
-        [item_id]
-    );
+  const item = itemResult.recordset[0]
+  if (!item) throw new Error('Item não encontrado')
 
-    const item = rows[0];
+  // 2. Verificar se a venda pertence ao estabelecimento e não está cancelada
+  const vendaReq = await request()
+  const vendaResult = await vendaReq
+    .input('venda_id', sql.Int, item.venda_id)
+    .input('estabelecimento_id', sql.Int, estabelecimento_id)
+    .query('SELECT * FROM vendas WHERE id = @venda_id AND estabelecimento_id = @estabelecimento_id')
 
-    if (!item) throw new Error("Item não encontrado");
+  const venda = vendaResult.recordset[0]
+  if (!venda) throw new Error('Venda não encontrada')
+  if (venda.status === 'cancelada') throw new Error('Não é possível alterar uma venda cancelada')
 
-    const [vendaRows] = await db.query(
-    "SELECT status FROM vendas WHERE id = ?",
-    [item.venda_id]
-    );
+  // 3. Devolver estoque
+  const estoqueReq = await request()
+  await estoqueReq
+    .input('quantidade', sql.Int, item.quantidade)
+    .input('produto_id', sql.Int, item.produto_id)
+    .query('UPDATE produtos SET estoque_atual = estoque_atual + @quantidade WHERE id = @produto_id')
 
-    const venda = vendaRows[0];
+  // 4. Deletar item
+  const deleteReq = await request()
+  await deleteReq
+    .input('item_id', sql.Int, item_id)
+    .query('DELETE FROM itens_venda WHERE id = @item_id')
 
-    if (venda.status === "PAGO") {
-        throw new Error("Não é possível alterar uma venda finalizada");
-    }
-    if (venda.status === "PAGO" || venda.status === "CANCELADO") {
-        throw new Error("Não é possível alterar essa venda");
-    }
+  // 5. Recalcular totais da venda
+  await recalcularTotais(item.venda_id)
 
-    const { produto_id, quantidade, venda_id } = item;
-
-    // devolver estoque
-    await db.query(
-        "UPDATE produtos SET estoque = estoque + ? WHERE id = ?",
-        [quantidade, produto_id]
-    );
-
-    // deletar item
-    await db.query(
-        "DELETE FROM itens_venda WHERE id = ?",
-        [item_id]
-    );
-
-    // atualizar total
-    await db.query(
-        `UPDATE vendas 
-         SET total = (
-            SELECT IFNULL(SUM(subtotal), 0)
-            FROM itens_venda
-            WHERE venda_id = ?
-         )
-         WHERE id = ?`,
-        [venda_id, venda_id]
-    );
-
-    return { message: "Item removido com sucesso" };
+  return { message: 'Item removido com sucesso' }
 }
 
-module.exports = {
-    adicionarItem,
-    removerItem
-};
+async function listarItensDaVenda(venda_id, estabelecimento_id) {
+  // Verificar se a venda pertence ao estabelecimento
+  const vendaReq = await request()
+  const vendaResult = await vendaReq
+    .input('venda_id', sql.Int, venda_id)
+    .input('estabelecimento_id', sql.Int, estabelecimento_id)
+    .query('SELECT * FROM vendas WHERE id = @venda_id AND estabelecimento_id = @estabelecimento_id')
+
+  if (!vendaResult.recordset[0]) throw new Error('Venda não encontrada')
+
+  const itensReq = await request()
+  const result = await itensReq
+    .input('venda_id', sql.Int, venda_id)
+    .query(`
+      SELECT iv.*, p.nome_produto, p.codigo_produto
+      FROM itens_venda iv
+      JOIN produtos p ON iv.produto_id = p.id
+      WHERE iv.venda_id = @venda_id
+    `)
+
+  return result.recordset
+}
+
+// Função interna para recalcular subtotal e total da venda
+async function recalcularTotais(venda_id) {
+  // Buscar desconto global da venda
+  const vendaReq = await request()
+  const vendaResult = await vendaReq
+    .input('venda_id', sql.Int, venda_id)
+    .query('SELECT desconto FROM vendas WHERE id = @venda_id')
+
+  const desconto_global = vendaResult.recordset[0]?.desconto || 0
+
+  // Somar subtotais dos itens
+  const somaReq = await request()
+  const somaResult = await somaReq
+    .input('venda_id', sql.Int, venda_id)
+    .query('SELECT ISNULL(SUM(subtotal), 0) AS subtotal FROM itens_venda WHERE venda_id = @venda_id')
+
+  const subtotal = somaResult.recordset[0].subtotal
+  const total = subtotal - desconto_global
+
+  // Atualizar venda
+  const updateReq = await request()
+  await updateReq
+    .input('subtotal', sql.Decimal(10, 2), subtotal)
+    .input('total', sql.Decimal(10, 2), total)
+    .input('venda_id', sql.Int, venda_id)
+    .query('UPDATE vendas SET subtotal = @subtotal, total = @total WHERE id = @venda_id')
+}
+
+module.exports = { adicionarItem, removerItem, listarItensDaVenda }
