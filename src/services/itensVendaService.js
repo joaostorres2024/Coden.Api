@@ -42,16 +42,22 @@ async function adicionarItem(venda_id, produto_id, quantidade, desconto = 0, est
     `)
 
   // 5. Baixar estoque
-  const estoqueReq = await request()
-  await estoqueReq
-    .input('quantidade', sql.Int, quantidade)
-    .input('produto_id', sql.Int, produto_id)
-    .query('UPDATE produtos SET estoque_atual = estoque_atual - @quantidade WHERE id = @produto_id')
+  try {
+    const estoqueReq = await request()
+    const estoqueResult = await estoqueReq
+      .input('quantidade', sql.Int, Number(quantidade))
+      .input('produto_id', sql.Int, Number(produto_id))
+      .query('UPDATE produtos SET estoque_atual = estoque_atual - @quantidade WHERE id = @produto_id')
+  } catch (estoqueErr) {
+    throw estoqueErr
+  }
 
   // 6. Recalcular totais da venda
+try {
   await recalcularTotais(venda_id)
-
-  return { message: 'Item adicionado com sucesso' }
+} catch (err) {
+  throw err
+}
 }
 
 async function removerItem(item_id, estabelecimento_id) {

@@ -1,4 +1,5 @@
 const { request, sql } = require('../config/db');
+const nfSaidaService = require('./nfSaidaService')
 
 async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_pagamento, desconto_global = 0, observacoes = '') {
   
@@ -176,6 +177,8 @@ async function finalizarVenda(id, forma_pagamento, estabelecimento_id) {
     .input('id', sql.Int, id)
     .input('forma_pagamento', sql.VarChar, forma_pagamento)
     .query("UPDATE vendas SET status = 'concluida', forma_pagamento = @forma_pagamento WHERE id = @id")
+
+  await nfSaidaService.gerarNfSaida(id, estabelecimento_id)
 }
 
 module.exports = { criarVendaComItens, listarVendas, buscarVendaPorId, cancelarVenda, finalizarVenda }
