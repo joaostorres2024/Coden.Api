@@ -6,7 +6,7 @@ async function registerProduct(req, res) {
         const {
             nome_produto,
             preco,
-            grupo,
+            grupo_id,
             codigo_produto,
             codigo_barras,
             preco_custo,
@@ -20,15 +20,13 @@ async function registerProduct(req, res) {
         } = req.body;
 
         if (!nome_produto || preco == null) {
-            return res.status(400).json({
-                erro: "nome_produto e preco são obrigatórios"
-            });
+            return res.status(400).json({ erro: "nome_produto e preco são obrigatórios" });
         }
 
         const product = await productService.createProduct({
             nome_produto,
             preco,
-            grupo,
+            grupo_id, // ← trocado
             estabelecimento_id,
             codigo_produto,
             codigo_barras,
@@ -42,11 +40,7 @@ async function registerProduct(req, res) {
             observacoes
         });
 
-        return res.status(201).json({
-            message: "Produto cadastrado com sucesso",
-            product
-        });
-
+        return res.status(201).json({ message: "Produto cadastrado com sucesso", product });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ erro: err.message });
@@ -89,7 +83,7 @@ async function updateProduct(req, res) {
         const {
             nome_produto,
             preco,
-            grupo,
+            grupo_id, // ← trocado
             codigo_produto,
             codigo_barras,
             preco_custo,
@@ -106,7 +100,7 @@ async function updateProduct(req, res) {
             id,
             nome_produto,
             preco,
-            grupo,
+            grupo_id,
             estabelecimento_id,
             codigo_produto,
             codigo_barras,
@@ -120,17 +114,12 @@ async function updateProduct(req, res) {
             observacoes
         });
 
-        return res.json({
-            message: "Produto atualizado com sucesso",
-            product
-        });
-
+        return res.json({ message: "Produto atualizado com sucesso", product });
     } catch (err) {
         console.error(err);
         return res.status(400).json({ erro: err.message });
     }
 }
-
 async function deleteProduct(req, res) {
     try {
         const { id } = req.params;
@@ -146,10 +135,31 @@ async function deleteProduct(req, res) {
     }
 }
 
+async function relatorioEstoque(req, res) {
+  try {
+    const { estabelecimento_id } = req.user
+    const { codigo, nome_produto, grupo_id, status, fornecedor } = req.query
+
+    const resultado = await productService.relatorioEstoque({
+      estabelecimento_id,
+      codigo,
+      nome_produto,
+      grupo_id: grupo_id ? Number(grupo_id) : null,
+      status,
+      fornecedor
+    })
+
+    res.json(resultado)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
 module.exports = {
     registerProduct,
     getAllProducts,
     getProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    relatorioEstoque
 };

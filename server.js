@@ -28,6 +28,7 @@ const mlProdutoRoutes = require('./src/routes/mlProdutoRoutes');
 const mlPedidoRoutes = require('./src/routes/mlPedidoRoutes');
 const mlNotificacaoRoutes = require('./src/routes/mlNotificacaoRoutes');
 const mlEstoqueRoutes = require('./src/routes/mlEstoqueRoutes');
+const grupoRoutes = require('./src/routes/grupoRoutes')
 
 app.use("/auth", authRoutes);
 app.use("/api", productRoutes)
@@ -40,6 +41,7 @@ app.use('/ml', mlProdutoRoutes);
 app.use('/ml', mlPedidoRoutes);
 app.use('/ml', mlNotificacaoRoutes);
 app.use('/ml', mlEstoqueRoutes);
+app.use('/api', grupoRoutes)
 
 // TESTE DE CONEXÃO
 const db = require("./src/config/db");

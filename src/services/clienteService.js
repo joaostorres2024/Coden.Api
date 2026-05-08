@@ -15,6 +15,7 @@ async function criarCliente(data) {
         nome_responsavel,
         telefone_1,
         telefone_2,
+        telefone_fixo,
         email,
         cep,
         endereco,
@@ -40,6 +41,7 @@ async function criarCliente(data) {
         .input("nome_responsavel", nome_responsavel)
         .input("telefone_1", telefone_1)
         .input("telefone_2", telefone_2)
+        .input("telefone_fixo", telefone_fixo)
         .input("email", email)
         .input("cep", cep)
         .input("endereco", endereco)
@@ -52,14 +54,14 @@ async function criarCliente(data) {
             INSERT INTO clientes (
                 estabelecimento_id, tipo_pessoa, nome_cliente, cpf, cnpj,
                 codigo_cliente, status, data_nascimento, nome_social,
-                razao_social, nome_responsavel, telefone_1, telefone_2,
+                razao_social, nome_responsavel, telefone_1, telefone_2, telefone_fixo,
                 email, cep, endereco, numero, bairro, cidade, uf, observacoes
             )
             OUTPUT INSERTED.id
             VALUES (
                 @estabelecimento_id, @tipo_pessoa, @nome_cliente, @cpf, @cnpj,
                 @codigo_cliente, @status, @data_nascimento, @nome_social,
-                @razao_social, @nome_responsavel, @telefone_1, @telefone_2,
+                @razao_social, @nome_responsavel, @telefone_1, @telefone_2, @telefone_fixo,
                 @email, @cep, @endereco, @numero, @bairro, @cidade, @uf, @observacoes
             )
         `)
@@ -107,6 +109,7 @@ async function atualizarCliente(data) {
         nome_responsavel,
         telefone_1,
         telefone_2,
+        telefone_fixo,
         email,
         cep,
         endereco,
@@ -133,6 +136,7 @@ async function atualizarCliente(data) {
         .input("nome_responsavel", nome_responsavel)
         .input("telefone_1", telefone_1)
         .input("telefone_2", telefone_2)
+        .input("telefone_fixo", telefone_fixo)
         .input("email", email)
         .input("cep", cep)
         .input("endereco", endereco)
@@ -155,6 +159,7 @@ async function atualizarCliente(data) {
                 nome_responsavel = @nome_responsavel,
                 telefone_1 = @telefone_1,
                 telefone_2 = @telefone_2,
+                telefone_fixo = @telefone_fixo,
                 email = @email,
                 cep = @cep,
                 endereco = @endereco,
