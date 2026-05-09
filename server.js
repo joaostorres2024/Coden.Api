@@ -30,6 +30,7 @@ const mlNotificacaoRoutes = require('./src/routes/mlNotificacaoRoutes');
 const mlEstoqueRoutes = require('./src/routes/mlEstoqueRoutes');
 const grupoRoutes = require('./src/routes/grupoRoutes');
 const nfSaidaRoutes = require('./src/routes/nfSaidaRoutes');
+const estabelecimentoRoutes = require('./src/routes/estabelecimentoRoutes');
 
 app.use("/auth", authRoutes);
 app.use("/api", productRoutes)
@@ -44,6 +45,7 @@ app.use('/ml', mlNotificacaoRoutes);
 app.use('/ml', mlEstoqueRoutes);
 app.use('/api', grupoRoutes);
 app.use('/api', nfSaidaRoutes);
+app.use('/api', estabelecimentoRoutes);
 
 // TESTE DE CONEXÃO
 const db = require("./src/config/db");
