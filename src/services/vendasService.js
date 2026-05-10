@@ -252,7 +252,7 @@ async function deletarVenda(id, estabelecimento_id) {
     .input('venda_id', sql.Int, id)
     .query('DELETE FROM itens_venda WHERE venda_id = @venda_id')
 
-F  const req = await request()
+  const req = await request()
   await req
     .input('id', sql.Int, id)
     .input('estabelecimento_id', sql.Int, estabelecimento_id)
