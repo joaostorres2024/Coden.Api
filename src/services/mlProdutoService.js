@@ -2,7 +2,6 @@ const axios = require('axios');
 const { mlGet, getAccessToken } = require('./mlService');
 const mlConfig = require('../config/mercadoLivre');
 
-// Busca o seller_id do usuário no ML
 async function getSellerid(userId) {
   const me = await mlGet(userId, '/users/me');
   return me.id;
@@ -32,12 +31,11 @@ async function listarProdutos(userId, offset = 0, limit = 50) {
 
   return { total: resultado.paging?.total || produtos.length, offset, limit, produtos };
 }
-// Busca um produto pelo ID ML
+
 async function buscarProduto(userId, itemId) {
   return await mlGet(userId, `/items/${itemId}`);
 }
 
-// Edita campos de um produto (título, preço, descrição, etc)
 async function editarProduto(userId, itemId, campos) {
   const accessToken = await getAccessToken(userId);
   const { data } = await axios.put(`${mlConfig.baseUrl}/items/${itemId}`, campos, {
@@ -46,7 +44,6 @@ async function editarProduto(userId, itemId, campos) {
   return data;
 }
 
-// Edita a descrição de um produto
 async function editarDescricao(userId, itemId, descricao) {
   const accessToken = await getAccessToken(userId);
   const { data } = await axios.put(`${mlConfig.baseUrl}/items/${itemId}/description`, 
@@ -56,32 +53,26 @@ async function editarDescricao(userId, itemId, descricao) {
   return data;
 }
 
-// Pausa um anúncio
 async function pausarProduto(userId, itemId) {
   return await editarProduto(userId, itemId, { status: 'paused' });
 }
 
-// Reativa um anúncio pausado
 async function ativarProduto(userId, itemId) {
   return await editarProduto(userId, itemId, { status: 'active' });
 }
 
-// Fecha/encerra um anúncio
 async function encerrarProduto(userId, itemId) {
   return await editarProduto(userId, itemId, { status: 'closed' });
 }
 
-// Atualiza o estoque de um produto
 async function atualizarEstoque(userId, itemId, quantidade) {
   return await editarProduto(userId, itemId, { available_quantity: quantidade });
 }
 
-// Atualiza o preço de um produto
 async function atualizarPreco(userId, itemId, preco) {
   return await editarProduto(userId, itemId, { price: preco });
 }
 
-// Cria um novo anúncio
 async function criarProduto(userId, produto) {
   const accessToken = await getAccessToken(userId);
   const { data } = await axios.post(`${mlConfig.baseUrl}/items`, produto, {
@@ -90,12 +81,10 @@ async function criarProduto(userId, produto) {
   return data;
 }
 
-// Busca categorias do ML
 async function buscarCategorias(userId, query) {
   return await mlGet(userId, `/sites/MLB/domain_discovery/search?q=${encodeURIComponent(query)}&limit=10`);
 }
 
-// Busca atributos obrigatórios de uma categoria
 async function atributoCategoria(userId, categoryId) {
   return await mlGet(userId, `/categories/${categoryId}/attributes`);
 }

@@ -1,75 +1,31 @@
-const nfEntradaService = require("../services/nfEntradaService");
+const nfEntradaService = require('../services/nfEntradaService')
 
-async function criarNota(req, res) {
+async function criar(req, res) {
   try {
-    const { estabelecimento_id } = req.user;
-
-    const nota = await nfEntradaService.criarNota({
-      ...req.body,
-      estabelecimento_id
-    });
-
-    return res.status(201).json({
-      message: "Nota criada com sucesso",
-      nota
-    });
-  } catch (error) {
-    return res.status(400).json({ erro: error.message });
+    const estabelecimento_id = req.user.estabelecimento_id
+    const result = await nfEntradaService.criarNfEntrada({ estabelecimento_id, ...req.body })
+    res.status(201).json(result)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
   }
 }
 
-async function listarNotas(req, res) {
+async function listar(req, res) {
   try {
-    const { estabelecimento_id } = req.user;
-
-    const notas = await nfEntradaService.listarNotas({
-      estabelecimento_id
-    });
-
-    return res.json(notas);
-  } catch (error) {
-    return res.status(500).json({ erro: error.message });
+    const result = await nfEntradaService.listarNfEntrada(req.user.estabelecimento_id)
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
 }
 
-async function buscarNota(req, res) {
+async function buscar(req, res) {
   try {
-    const { estabelecimento_id } = req.user;
-    const id = Number(req.params.id);
-
-    const nota = await nfEntradaService.buscarNota({
-      id,
-      estabelecimento_id
-    });
-
-    return res.json(nota);
-  } catch (error) {
-    return res.status(404).json({ erro: error.message });
+    const result = await nfEntradaService.buscarNfEntrada(Number(req.params.id), req.user.estabelecimento_id)
+    res.json(result)
+  } catch (err) {
+    res.status(404).json({ error: err.message })
   }
 }
 
-async function cancelarNota(req, res) {
-  try {
-    const { estabelecimento_id } = req.user;
-    const id = Number(req.params.id);
-
-    const nota = await nfEntradaService.cancelarNota({
-      id,
-      estabelecimento_id
-    });
-
-    return res.json({
-      message: "Nota cancelada com sucesso",
-      nota
-    });
-  } catch (error) {
-    return res.status(400).json({ erro: error.message });
-  }
-}
-
-module.exports = {
-  criarNota,
-  listarNotas,
-  buscarNota,
-  cancelarNota
-};
+module.exports = { criar, listar, buscar }

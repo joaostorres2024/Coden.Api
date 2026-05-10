@@ -7,8 +7,10 @@ router.get('/products/relatorio/estoque', authMiddleware, productController.rela
 
 router.post("/products", authMiddleware, productController.registerProduct);
 router.get("/products", authMiddleware, productController.getAllProducts);
+router.delete('/products/:id', authMiddleware, productController.deletarProduto);
 router.get("/products/:id", authMiddleware, productController.getProduct);
 router.delete("/products/:id", authMiddleware, productController.deleteProduct);
 router.put("/products/:id", authMiddleware, productController.updateProduct);
+router.get('/products/relatorio/estoque/pdf', authMiddleware, productController.relatorioEstoquePDF);
 
 module.exports = router;

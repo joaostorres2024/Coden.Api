@@ -169,4 +169,29 @@ async function relatorioEstoque({ estabelecimento_id, codigo, nome_produto, grup
   return result.recordset
 }
 
-module.exports = { createProduct, getAllProducts, getProduct, updateProduct, deleteProduct, relatorioEstoque }
+async function deletarProduto({ id, estabelecimento_id }) {
+  const checkReq = await request()
+  const check = await checkReq
+    .input('produto_id', sql.Int, id)
+    .query('SELECT COUNT(*) as total FROM itens_venda WHERE produto_id = @produto_id')
+
+  if (check.recordset[0].total > 0) {
+    throw new Error('Produto não pode ser excluído pois possui vendas vinculadas. Inative-o.')
+  }
+
+  const req = await request()
+  await req
+    .input('id', sql.Int, id)
+    .input('estabelecimento_id', sql.Int, estabelecimento_id)
+    .query('DELETE FROM produtos WHERE id = @id AND estabelecimento_id = @estabelecimento_id')
+}
+
+module.exports = {
+  createProduct,
+  getAllProducts,
+  getProduct,
+  updateProduct,
+  deleteProduct,
+  relatorioEstoque,
+  deletarProduto
+}

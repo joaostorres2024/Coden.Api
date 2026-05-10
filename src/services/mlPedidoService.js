@@ -2,7 +2,6 @@ const axios = require('axios');
 const { mlGet, getAccessToken } = require('./mlService');
 const mlConfig = require('../config/mercadoLivre');
 
-// Lista pedidos do usuário
 async function listarPedidos(userId, offset = 0, limit = 50) {
   const me = await mlGet(userId, '/users/me');
   const sellerId = me.id;
@@ -19,34 +18,28 @@ async function listarPedidos(userId, offset = 0, limit = 50) {
   };
 }
 
-// Busca um pedido pelo ID
 async function buscarPedido(userId, orderId) {
   return await mlGet(userId, `/orders/${orderId}`);
 }
 
-// Busca os itens de um pedido
 async function itensPedido(userId, orderId) {
   return await mlGet(userId, `/orders/${orderId}/items`);
 }
 
-// Busca informações do comprador de um pedido
 async function compradorPedido(userId, orderId) {
   const pedido = await buscarPedido(userId, orderId);
   return pedido.buyer || null;
 }
 
-// Busca o endereço de entrega de um pedido
 async function enderecoEntrega(userId, orderId) {
   const pedido = await buscarPedido(userId, orderId);
   return pedido.shipping || null;
 }
 
-// Busca detalhes do envio
 async function detalheEnvio(userId, shippingId) {
   return await mlGet(userId, `/shipments/${shippingId}`);
 }
 
-// Busca pedidos por status
 async function pedidosPorStatus(userId, status, offset = 0, limit = 50) {
   const me = await mlGet(userId, '/users/me');
   const sellerId = me.id;
@@ -63,13 +56,11 @@ async function pedidosPorStatus(userId, status, offset = 0, limit = 50) {
   };
 }
 
-// Busca mensagens de um pedido
 async function mensagensPedido(userId, orderId) {
   const me = await mlGet(userId, '/users/me');
   return await mlGet(userId, `/messages/packs/${orderId}/sellers/${me.id}`);
 }
 
-// Envia mensagem ao comprador
 async function enviarMensagem(userId, orderId, mensagem) {
   const accessToken = await getAccessToken(userId);
   const me = await mlGet(userId, '/users/me');
@@ -82,7 +73,6 @@ async function enviarMensagem(userId, orderId, mensagem) {
   return data;
 }
 
-// Busca nota fiscal de um pedido
 async function notaFiscalPedido(userId, orderId) {
   return await mlGet(userId, `/orders/${orderId}/billing_info`);
 }

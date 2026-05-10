@@ -1,7 +1,7 @@
 const { request, sql } = require('../config/db')
 
 async function adicionarItem(venda_id, produto_id, quantidade, desconto = 0, estabelecimento_id) {
-  // 1. Verificar se a venda existe e pertence ao estabelecimento
+
   const vendaReq = await request()
   const vendaResult = await vendaReq
     .input('venda_id', sql.Int, venda_id)
@@ -12,7 +12,6 @@ async function adicionarItem(venda_id, produto_id, quantidade, desconto = 0, est
   if (!venda) throw new Error('Venda não encontrada')
   if (venda.status === 'cancelada') throw new Error('Não é possível alterar uma venda cancelada')
 
-  // 2. Verificar produto e estoque
   const produtoReq = await request()
   const produtoResult = await produtoReq
     .input('produto_id', sql.Int, produto_id)
@@ -23,11 +22,9 @@ async function adicionarItem(venda_id, produto_id, quantidade, desconto = 0, est
   if (!produto) throw new Error('Produto não encontrado')
   if (produto.estoque_atual < quantidade) throw new Error(`Estoque insuficiente para o produto ${produto.nome_produto}`)
 
-  // 3. Calcular subtotal
   const preco_unitario = produto.preco
   const subtotal = (preco_unitario * quantidade) - desconto
 
-  // 4. Inserir item
   const itemReq = await request()
   await itemReq
     .input('venda_id', sql.Int, venda_id)
@@ -41,7 +38,6 @@ async function adicionarItem(venda_id, produto_id, quantidade, desconto = 0, est
       VALUES (@venda_id, @produto_id, @quantidade, @preco_unitario, @desconto, @subtotal)
     `)
 
-  // 5. Baixar estoque
   try {
     const estoqueReq = await request()
     const estoqueResult = await estoqueReq
@@ -52,7 +48,6 @@ async function adicionarItem(venda_id, produto_id, quantidade, desconto = 0, est
     throw estoqueErr
   }
 
-  // 6. Recalcular totais da venda
 try {
   await recalcularTotais(venda_id)
 } catch (err) {
@@ -61,7 +56,7 @@ try {
 }
 
 async function removerItem(item_id, estabelecimento_id) {
-  // 1. Buscar item
+
   const itemReq = await request()
   const itemResult = await itemReq
     .input('item_id', sql.Int, item_id)
@@ -70,7 +65,6 @@ async function removerItem(item_id, estabelecimento_id) {
   const item = itemResult.recordset[0]
   if (!item) throw new Error('Item não encontrado')
 
-  // 2. Verificar se a venda pertence ao estabelecimento e não está cancelada
   const vendaReq = await request()
   const vendaResult = await vendaReq
     .input('venda_id', sql.Int, item.venda_id)
@@ -81,27 +75,24 @@ async function removerItem(item_id, estabelecimento_id) {
   if (!venda) throw new Error('Venda não encontrada')
   if (venda.status === 'cancelada') throw new Error('Não é possível alterar uma venda cancelada')
 
-  // 3. Devolver estoque
   const estoqueReq = await request()
   await estoqueReq
     .input('quantidade', sql.Int, item.quantidade)
     .input('produto_id', sql.Int, item.produto_id)
     .query('UPDATE produtos SET estoque_atual = estoque_atual + @quantidade WHERE id = @produto_id')
 
-  // 4. Deletar item
   const deleteReq = await request()
   await deleteReq
     .input('item_id', sql.Int, item_id)
     .query('DELETE FROM itens_venda WHERE id = @item_id')
 
-  // 5. Recalcular totais da venda
   await recalcularTotais(item.venda_id)
 
   return { message: 'Item removido com sucesso' }
 }
 
 async function listarItensDaVenda(venda_id, estabelecimento_id) {
-  // Verificar se a venda pertence ao estabelecimento
+
   const vendaReq = await request()
   const vendaResult = await vendaReq
     .input('venda_id', sql.Int, venda_id)
@@ -123,9 +114,8 @@ async function listarItensDaVenda(venda_id, estabelecimento_id) {
   return result.recordset
 }
 
-// Função interna para recalcular subtotal e total da venda
 async function recalcularTotais(venda_id) {
-  // Buscar desconto global da venda
+
   const vendaReq = await request()
   const vendaResult = await vendaReq
     .input('venda_id', sql.Int, venda_id)
@@ -133,7 +123,6 @@ async function recalcularTotais(venda_id) {
 
   const desconto_global = vendaResult.recordset[0]?.desconto || 0
 
-  // Somar subtotais dos itens
   const somaReq = await request()
   const somaResult = await somaReq
     .input('venda_id', sql.Int, venda_id)
@@ -142,7 +131,6 @@ async function recalcularTotais(venda_id) {
   const subtotal = somaResult.recordset[0].subtotal
   const total = subtotal - desconto_global
 
-  // Atualizar venda
   const updateReq = await request()
   await updateReq
     .input('subtotal', sql.Decimal(10, 2), subtotal)

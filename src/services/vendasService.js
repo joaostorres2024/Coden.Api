@@ -6,9 +6,7 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
   let subtotal = 0
   const itensComPreco = []
 
-  // Só processa itens se existirem
   if (itens && itens.length > 0) {
-    // validar estoque
     for (const item of itens) {
       const estoqueReq = await request()
       const produtoResult = await estoqueReq
@@ -35,16 +33,13 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
   }
 
   const total = subtotal - desconto_global
-  // ... resto do código igual
 
-  // 3. Gerar código da venda
   const codReq = await request()
   const codResult = await codReq
     .input('estabelecimento_id', sql.Int, estabelecimento_id)
     .query('SELECT COUNT(*) AS total FROM vendas WHERE estabelecimento_id = @estabelecimento_id')
   const codigo_venda = `VND${String(codResult.recordset[0].total + 1).padStart(5, '0')}`
 
-  // 4. Inserir venda
   const vendaReq = await request()
   const vendaResult = await vendaReq
     .input('estabelecimento_id', sql.Int, estabelecimento_id)
@@ -64,7 +59,6 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
 
   const venda_id = vendaResult.recordset[0].id
 
-  // 5. Inserir itens e baixar estoque
   for (const item of itensComPreco) {
     const itemReq = await request()
     await itemReq
@@ -141,7 +135,6 @@ async function cancelarVenda(id, estabelecimento_id) {
   if (!venda) throw new Error('Venda não encontrada')
   if (venda.status === 'cancelada') throw new Error('Venda já está cancelada')
 
-  // Devolver estoque
   const itensReq = await request()
   const itens = await itensReq
     .input('venda_id', sql.Int, id)
@@ -181,4 +174,109 @@ async function finalizarVenda(id, forma_pagamento, estabelecimento_id) {
   await nfSaidaService.gerarNfSaida(id, estabelecimento_id)
 }
 
-module.exports = { criarVendaComItens, listarVendas, buscarVendaPorId, cancelarVenda, finalizarVenda }
+async function relatorioVendas({ estabelecimento_id, de, ate, cliente, produto, forma_pagamento }) {
+  const req = await request()
+
+  req.input('estabelecimento_id', sql.Int, estabelecimento_id)
+
+let where = 'WHERE v.estabelecimento_id = @estabelecimento_id AND v.status = \'concluida\' AND v.forma_pagamento != \'pendente\''
+
+  if (de) {
+    req.input('de', sql.DateTime, new Date(de))
+    where += ' AND v.data >= @de'
+  }
+  if (ate) {
+    req.input('ate', sql.DateTime, new Date(ate))
+    where += ' AND v.data <= @ate'
+  }
+  if (cliente) {
+    req.input('cliente', sql.VarChar, `%${cliente}%`)
+    where += ' AND c.nome_cliente LIKE @cliente'
+  }
+  if (forma_pagamento) {
+    req.input('forma_pagamento', sql.VarChar, forma_pagamento)
+    where += ' AND v.forma_pagamento = @forma_pagamento'
+  }
+
+const result = await req.query(`
+  SELECT
+    v.id,
+    v.codigo_venda,
+    v.data,
+    v.forma_pagamento,
+    ISNULL(SUM(iv.preco_unitario), 0) AS subtotal,
+    v.desconto AS desconto_global,
+    ISNULL(SUM(iv.desconto), 0) AS desconto_itens,
+    v.desconto + ISNULL(SUM(iv.desconto), 0) AS desconto_total,
+    v.total,
+    v.status,
+    c.nome_cliente
+  FROM vendas v
+  LEFT JOIN clientes c ON v.cliente_id = c.id
+  LEFT JOIN itens_venda iv ON iv.venda_id = v.id
+  ${where}
+  GROUP BY v.id, v.codigo_venda, v.data, v.forma_pagamento,
+           v.desconto, v.total, v.status, c.nome_cliente
+  ORDER BY v.data DESC
+`)
+
+  const vendas = result.recordset
+
+  if (produto) {
+    const vendasFiltradas = []
+    for (const venda of vendas) {
+      const itensReq = await request()
+      const itens = await itensReq
+        .input('venda_id', sql.Int, venda.id)
+        .input('produto', sql.VarChar, `%${produto}%`)
+        .query(`
+          SELECT iv.*, p.nome_produto
+          FROM itens_venda iv
+          JOIN produtos p ON iv.produto_id = p.id
+          WHERE iv.venda_id = @venda_id
+          AND p.nome_produto LIKE @produto
+        `)
+      if (itens.recordset.length > 0) {
+        vendasFiltradas.push({ ...venda, itens: itens.recordset })
+      }
+    }
+    return vendasFiltradas
+  }
+
+  return vendas
+}
+
+async function deletarVenda(id, estabelecimento_id) {
+  const itensReq = await request()
+  await itensReq
+    .input('venda_id', sql.Int, id)
+    .query('DELETE FROM itens_venda WHERE venda_id = @venda_id')
+
+F  const req = await request()
+  await req
+    .input('id', sql.Int, id)
+    .input('estabelecimento_id', sql.Int, estabelecimento_id)
+    .query('DELETE FROM vendas WHERE id = @id AND estabelecimento_id = @estabelecimento_id AND status != \'concluida\'')
+}
+
+async function vendasPorUF(estabelecimento_id) {
+  const req = await request()
+  const result = await req
+    .input('estabelecimento_id', sql.Int, estabelecimento_id)
+    .query(`
+      SELECT 
+        c.uf,
+        COUNT(v.id) as total_vendas,
+        SUM(v.total) as valor_total
+      FROM vendas v
+      JOIN clientes c ON v.cliente_id = c.id
+      WHERE v.estabelecimento_id = @estabelecimento_id
+        AND v.status = 'concluida'
+        AND c.uf IS NOT NULL
+      GROUP BY c.uf
+      ORDER BY total_vendas DESC
+    `)
+  return result.recordset
+}
+
+module.exports = { criarVendaComItens, listarVendas, buscarVendaPorId, cancelarVenda, finalizarVenda, relatorioVendas, deletarVenda, vendasPorUF }

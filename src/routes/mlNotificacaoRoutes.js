@@ -1,7 +1,6 @@
 const router = require('express').Router();
 
 router.post('/notificacoes', async (req, res) => {
-  // ML exige 200 imediato
   res.sendStatus(200);
 
   const notificacao = req.body;
@@ -13,7 +12,6 @@ router.post('/notificacoes', async (req, res) => {
     switch (topic) {
       case 'orders_v2':
         console.log(`Novo pedido/atualização: ${resource} | Usuário ML: ${user_id}`);
-        // Aqui você pode salvar no banco, disparar eventos, etc
         break;
 
       case 'items':

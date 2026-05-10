@@ -2,7 +2,6 @@ const axios = require('axios');
 const { mlGet, getAccessToken } = require('./mlService');
 const mlConfig = require('../config/mercadoLivre');
 
-// Busca estoque de um item
 async function buscarEstoque(userId, itemId) {
   const item = await mlGet(userId, `/items/${itemId}`);
   return {
@@ -14,7 +13,6 @@ async function buscarEstoque(userId, itemId) {
   };
 }
 
-// Atualiza estoque de um item
 async function atualizarEstoque(userId, itemId, quantidade) {
   const accessToken = await getAccessToken(userId);
   const { data } = await axios.put(
@@ -29,7 +27,6 @@ async function atualizarEstoque(userId, itemId, quantidade) {
   };
 }
 
-// Busca estoque de múltiplos itens de uma vez
 async function buscarEstoqueMultiplos(userId, itemIds) {
   const chunks = [];
   for (let i = 0; i < itemIds.length; i += 20) {
@@ -55,7 +52,6 @@ async function buscarEstoqueMultiplos(userId, itemIds) {
   return estoques;
 }
 
-// Lista todos os itens com estoque baixo (abaixo do mínimo)
 async function estoquesBaixos(userId, minimo = 5) {
   const me = await mlGet(userId, '/users/me');
   const sellerId = me.id;
@@ -86,9 +82,8 @@ async function estoquesBaixos(userId, minimo = 5) {
   return { total: baixos.length, minimo, itens: baixos };
 }
 
-// Atualiza estoque de múltiplos itens de uma vez
 async function atualizarEstoqueMultiplos(userId, itens) {
-  // itens = [{ item_id: 'MLB123', quantidade: 10 }, ...]
+
   const resultados = [];
 
   for (const item of itens) {

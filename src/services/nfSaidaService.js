@@ -1,7 +1,7 @@
 const { request, sql } = require('../config/db')
 
 async function gerarNfSaida(venda_id, estabelecimento_id) {
-  // 1. Buscar venda
+
   const vendaReq = await request()
   const vendaResult = await vendaReq
     .input('venda_id', sql.Int, venda_id)
@@ -16,7 +16,6 @@ async function gerarNfSaida(venda_id, estabelecimento_id) {
   const venda = vendaResult.recordset[0]
   if (!venda) throw new Error('Venda não encontrada')
 
-  // 2. Buscar itens da venda
   const itensReq = await request()
   const itensResult = await itensReq
     .input('venda_id', sql.Int, venda_id)
@@ -30,14 +29,12 @@ async function gerarNfSaida(venda_id, estabelecimento_id) {
   const itens = itensResult.recordset
   if (itens.length === 0) throw new Error('Venda sem itens')
 
-  // 3. Gerar número da NF
   const codReq = await request()
   const codResult = await codReq
     .input('estabelecimento_id', sql.Int, estabelecimento_id)
     .query('SELECT COUNT(*) AS total FROM nf_saida WHERE estabelecimento_id = @estabelecimento_id')
   const numero_nf = `NFS${String(codResult.recordset[0].total + 1).padStart(6, '0')}`
 
-  // 4. Inserir NF
   const nfReq = await request()
   const nfResult = await nfReq
     .input('numero_nf', sql.VarChar, numero_nf)
@@ -56,7 +53,6 @@ async function gerarNfSaida(venda_id, estabelecimento_id) {
 
   const nf_id = nfResult.recordset[0].id
 
-  // 5. Inserir itens da NF
   for (const item of itens) {
     const itemReq = await request()
     await itemReq
