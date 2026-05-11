@@ -181,14 +181,12 @@ async function relatorioVendas({ estabelecimento_id, de, ate, cliente, produto, 
 
 let where = 'WHERE v.estabelecimento_id = @estabelecimento_id AND v.status = \'concluida\' AND v.forma_pagamento != \'pendente\''
 
-  if (de) {
-    req.input('de', sql.DateTime, new Date(de))
-    where += ' AND v.data >= @de'
-  }
-  if (ate) {
-    req.input('ate', sql.DateTime, new Date(ate))
-    where += ' AND v.data <= @ate'
-  }
+if (ate) {
+  const ateDate = new Date(ate)
+  ateDate.setHours(23, 59, 59, 999)
+  req.input('ate', sql.DateTime, ateDate)
+  where += ' AND v.data <= @ate'
+}
   if (cliente) {
     req.input('cliente', sql.VarChar, `%${cliente}%`)
     where += ' AND c.nome_cliente LIKE @cliente'
