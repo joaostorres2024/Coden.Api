@@ -100,45 +100,46 @@ async function gerarPDF(req, res) {
     // ═══════════════════════════════════════
 
     // Emitente (esquerda)
-    box(L, y, 320, 90)
-    doc.fontSize(10).font('Helvetica-Bold').fillColor('#000')
-      .text(estabelecimento.nome || 'EMITENTE', L + 4, y + 4, { width: 314 })
-    doc.fontSize(7).font('Helvetica').fillColor('#333')
-    doc.text(`CNPJ: ${estabelecimento.cnpj || '-'}`, L + 4, y + 18)
-    doc.text(`IE: ${estabelecimento.inscricao_estadual || '-'}  IM: ${estabelecimento.inscricao_municipal || '-'}`, L + 4, y + 28)
-    doc.text(`${estabelecimento.endereco || ''}, ${estabelecimento.numero || ''} - ${estabelecimento.bairro || ''}`, L + 4, y + 38)
-    doc.text(`${estabelecimento.cidade || ''} - ${estabelecimento.uf || ''}  CEP: ${estabelecimento.cep || ''}`, L + 4, y + 48)
-    doc.text(`Tel: ${estabelecimento.telefone || '-'}`, L + 4, y + 58)
-    doc.text(`E-mail: ${estabelecimento.email || '-'}`, L + 4, y + 68)
+// Emitente (esquerda) — mantém 310
+box(L, y, 310, 90)
+doc.fontSize(10).font('Helvetica-Bold').fillColor('#000')
+  .text(estabelecimento.nome || 'EMITENTE', L + 4, y + 4, { width: 304 })
+doc.fontSize(7).font('Helvetica').fillColor('#333')
+doc.text(`CNPJ: ${estabelecimento.cnpj || '-'}`, L + 4, y + 18)
+doc.text(`IE: ${estabelecimento.inscricao_estadual || '-'}  IM: ${estabelecimento.inscricao_municipal || '-'}`, L + 4, y + 28)
+doc.text(`${estabelecimento.endereco || ''}, ${estabelecimento.numero || ''} - ${estabelecimento.bairro || ''}`, L + 4, y + 38)
+doc.text(`${estabelecimento.cidade || ''} - ${estabelecimento.uf || ''}  CEP: ${estabelecimento.cep || ''}`, L + 4, y + 48)
+doc.text(`Tel: ${estabelecimento.telefone || '-'}`, L + 4, y + 58)
+doc.text(`E-mail: ${estabelecimento.email || '-'}`, L + 4, y + 68)
 
-    // DANFE (centro)
-    box(L + 320, y, 120, 90)
-    doc.fontSize(12).font('Helvetica-Bold').fillColor('#000')
-      .text('DANFE', L + 322, y + 6, { width: 116, align: 'center' })
-    doc.fontSize(6).font('Helvetica')
-      .text('Documento Auxiliar da', L + 322, y + 22, { width: 116, align: 'center' })
-      .text('Nota Fiscal Eletrônica', L + 322, y + 30, { width: 116, align: 'center' })
-    doc.fontSize(7)
-      .text('2 - Saída', L + 322, y + 44, { width: 116, align: 'center' })
-    doc.fontSize(9).font('Helvetica-Bold')
-      .text(`Nº ${nf.numero_nf}`, L + 322, y + 56, { width: 116, align: 'center' })
-    doc.fontSize(7).font('Helvetica')
-      .text('SÉRIE: 1', L + 322, y + 68, { width: 116, align: 'center' })
-      .text('Página: 1 de 1', L + 322, y + 76, { width: 116, align: 'center' })
+// DANFE (centro) — 110
+box(L + 310, y, 110, 90)
+doc.fontSize(12).font('Helvetica-Bold').fillColor('#000')
+  .text('DANFE', L + 312, y + 6, { width: 106, align: 'center' })
+doc.fontSize(6).font('Helvetica')
+  .text('Documento Auxiliar da', L + 312, y + 22, { width: 106, align: 'center' })
+  .text('Nota Fiscal Eletrônica', L + 312, y + 30, { width: 106, align: 'center' })
+doc.fontSize(7)
+  .text('2 - Saída', L + 312, y + 44, { width: 106, align: 'center' })
+doc.fontSize(9).font('Helvetica-Bold')
+  .text(`Nº ${nf.numero_nf}`, L + 312, y + 56, { width: 106, align: 'center' })
+doc.fontSize(7).font('Helvetica')
+  .text('SÉRIE: 1', L + 312, y + 68, { width: 106, align: 'center' })
+  .text('Página: 1 de 1', L + 312, y + 76, { width: 106, align: 'center' })
 
-    // NF-e info (direita)
-    box(L + 440, y, 125, 90)
-    label(L + 440, y, 'Chave de Acesso NF-e')
-    doc.fontSize(6).font('Helvetica').fillColor('#333')
-      .text('DOCUMENTO SEM VALOR FISCAL', L + 442, y + 12, { width: 121, align: 'center' })
-    label(L + 440, y + 30, 'Data de Emissão')
-    value(L + 440, y + 30, new Date(nf.data_emissao).toLocaleDateString('pt-BR'))
-    label(L + 440, y + 50, 'Data de Saída')
-    value(L + 440, y + 50, new Date(nf.data_emissao).toLocaleDateString('pt-BR'))
-    label(L + 440, y + 70, 'Hora de Saída')
-    value(L + 440, y + 70, new Date(nf.data_emissao).toLocaleTimeString('pt-BR'))
+// NF-e info (direita) — 115 → total: 310+110+115 = 535 ✅
+box(L + 420, y, 115, 90)
+label(L + 420, y, 'Chave de Acesso NF-e')
+doc.fontSize(6).font('Helvetica').fillColor('#333')
+  .text('DOCUMENTO SEM VALOR FISCAL', L + 422, y + 12, { width: 111, align: 'center' })
+label(L + 420, y + 30, 'Data de Emissão')
+value(L + 420, y + 30, new Date(nf.data_emissao).toLocaleDateString('pt-BR'))
+label(L + 420, y + 50, 'Data de Saída')
+value(L + 420, y + 50, new Date(nf.data_emissao).toLocaleDateString('pt-BR'))
+label(L + 420, y + 70, 'Hora de Saída')
+value(L + 420, y + 70, new Date(nf.data_emissao).toLocaleTimeString('pt-BR'))
 
-    y += 90
+y += 90
 
     // ═══════════════════════════════════════
     // NATUREZA DA OPERAÇÃO
@@ -197,15 +198,15 @@ async function gerarPDF(req, res) {
     y += 14
 
     // Cabeçalho colunas
-    const cols = [
-      { label: 'Código', x: L, w: 55 },
-      { label: 'Descrição', x: L + 55, w: 200 },
-      { label: 'Qtd.', x: L + 255, w: 45 },
-      { label: 'Un.', x: L + 300, w: 35 },
-      { label: 'Vlr. Unit.', x: L + 335, w: 80 },
-      { label: 'Desconto', x: L + 415, w: 65 },
-      { label: 'Vlr. Total', x: L + 480, w: 85 }
-    ]
+const cols = [
+  { label: 'Código',    x: L,       w: 50  },
+  { label: 'Descrição', x: L + 50,  w: 195 },
+  { label: 'Qtd.',      x: L + 245, w: 40  },
+  { label: 'Un.',       x: L + 285, w: 35  },
+  { label: 'Vlr. Unit.', x: L + 320, w: 75 },
+  { label: 'Desconto',  x: L + 395, w: 70  },
+  { label: 'Vlr. Total', x: L + 465, w: 70 },
+]
 
     box(L, y, W, 16)
     doc.fontSize(6).font('Helvetica-Bold').fillColor('#000')
