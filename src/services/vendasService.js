@@ -5,6 +5,8 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
   
   let subtotal = 0
   const itensComPreco = []
+  const produtosMap = new Map()
+  
 
   if (itens && itens.length > 0) {
     for (const item of itens) {
@@ -15,16 +17,16 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
         .query('SELECT * FROM produtos WHERE id = @produto_id AND estabelecimento_id = @estabelecimento_id')
 
       const produto = produtoResult.recordset[0]
-      if (!produto) throw new Error(`Produto ${item.produto_id} não encontrado`)
+
+  if (!produto) {
+    throw new Error(`Produto ${item.produto_id} não encontrado`)
+  }
+
+  produtosMap.set(produto.id, produto)
       if (produto.estoque_atual < item.quantidade) throw new Error(`Estoque insuficiente para o produto ${produto.nome_produto}`)
     }
 
-    for (const item of itens) {
-      const prodReq = await request()
-      const prodResult = await prodReq
-        .input('produto_id', sql.Int, item.produto_id)
-        .query('SELECT * FROM produtos WHERE id = @produto_id')
-      const produto = prodResult.recordset[0]
+      const produto = produtosMap.get(item.produto_id)
       const desconto_item = item.desconto || 0
       const subtotal_item = (produto.preco * item.quantidade) - desconto_item
       subtotal += subtotal_item
@@ -32,13 +34,11 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
     }
   }
 
-  const total = subtotal - desconto_global
+  const total = Math.max(
+    0,
+    subtotal - desconto_global
+  )
 
-  const codReq = await request()
-  const codResult = await codReq
-    .input('estabelecimento_id', sql.Int, estabelecimento_id)
-    .query('SELECT COUNT(*) AS total FROM vendas WHERE estabelecimento_id = @estabelecimento_id')
-  const codigo_venda = `VND${String(codResult.recordset[0].total + 1).padStart(5, '0')}`
 
   const vendaReq = await request()
   const vendaResult = await vendaReq
@@ -50,7 +50,7 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
     .input('desconto', sql.Decimal(10, 2), desconto_global)
     .input('total', sql.Decimal(10, 2), total)
     .input('observacoes', sql.VarChar, observacoes)
-    .input('codigo_venda', sql.VarChar, codigo_venda)
+    .input('codigo_venda', sql.VarChar, '')
     .query(`
       INSERT INTO vendas (estabelecimento_id, cliente_id, forma_pagamento, status, subtotal, desconto, total, observacoes, codigo_venda, data)
       OUTPUT INSERTED.id
@@ -58,6 +58,19 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
     `)
 
   const venda_id = vendaResult.recordset[0].id
+
+  const codigo_venda = `VND${String(venda_id).padStart(5, '0')}`
+
+  const updateCodigoReq = await request()
+
+  await updateCodigoReq
+    .input('id', sql.Int, venda_id)
+    .input('codigo_venda', sql.VarChar, codigo_venda)
+    .query(`
+        UPDATE vendas
+        SET codigo_venda = @codigo_venda
+        WHERE id = @id
+    `)
 
   for (const item of itensComPreco) {
     const itemReq = await request()
@@ -74,13 +87,31 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
       `)
 
     const estoqueReq = await request()
-    await estoqueReq
+
+    const resultadoEstoque =
+      await estoqueReq
       .input('quantidade', sql.Int, item.quantidade)
       .input('produto_id', sql.Int, item.produto_id)
-      .query('UPDATE produtos SET estoque_atual = estoque_atual - @quantidade WHERE id = @produto_id')
-  }
+      .query(`
+        UPDATE produtos
+        SET estoque_atual =
+        estoque_atual - @quantidade
+        WHERE id = @produto_id
+        AND estoque_atual >= @quantidade
+  `)
+  if (resultadoEstoque.rowsAffected[0] === 0) {
+    throw new Error(
+      'Estoque insuficiente'
+    )
+  } 
 
-  return { id: venda_id, codigo_venda, total, message: 'Venda criada com sucesso' }
+}
+
+return {
+  id: venda_id,
+  codigo_venda,
+  total,
+  message: 'Venda criada com sucesso'
 }
 
 async function listarVendas(estabelecimento_id) {
@@ -181,20 +212,62 @@ async function relatorioVendas({ estabelecimento_id, de, ate, cliente, produto, 
 
 let where = 'WHERE v.estabelecimento_id = @estabelecimento_id AND v.status = \'concluida\' AND v.forma_pagamento != \'pendente\''
 
-if (ate) {
-  const ateDate = new Date(ate)
-  ateDate.setHours(23, 59, 59, 999)
-  req.input('ate', sql.DateTime, ateDate)
-  where += ' AND v.data <= @ate'
-}
-  if (cliente) {
-    req.input('cliente', sql.VarChar, `%${cliente}%`)
+  if (de) {
+    req.input(
+      'de',
+      sql.DateTime,
+      `${de} 00:00:00`
+    )
+
+    where += ' AND v.data >= @de'
+  }
+
+  if (ate) {
+    req.input(
+      'ate',
+      sql.DateTime,
+      `${ate} 23:59:59`
+    )
+
+    where += ' AND v.data <= @ate'
+  }
+  if (cliente?.trim()) {
+    req.input('cliente', sql.VarChar, `%${cliente.trim()}%`)
     where += ' AND c.nome_cliente LIKE @cliente'
   }
-  if (forma_pagamento) {
-    req.input('forma_pagamento', sql.VarChar, forma_pagamento)
+  if (forma_pagamento?.trim()) {
+    req.input('forma_pagamento', sql.VarChar, forma_pagamento.toLowerCase())
     where += ' AND v.forma_pagamento = @forma_pagamento'
   }
+  if (produto?.trim()) {
+  req.input(
+    'produto',
+    sql.VarChar,
+    `%${produto.trim()}%`
+  )
+
+  where += `
+    AND EXISTS (
+      SELECT 1
+      FROM itens_venda iv2
+      JOIN produtos p2
+      ON p2.id = iv2.produto_id
+      WHERE iv2.venda_id = v.id
+      AND p2.nome_produto LIKE @produto
+    )
+  `
+}
+
+console.log({
+  estabelecimento_id,
+  de,
+  ate,
+  cliente,
+  produto,
+  forma_pagamento
+})
+
+console.log(where)
 
 const result = await req.query(`
   SELECT
@@ -202,7 +275,7 @@ const result = await req.query(`
     v.codigo_venda,
     v.data,
     v.forma_pagamento,
-    ISNULL(SUM(iv.preco_unitario), 0) AS subtotal,
+    ISNULL(SUM(iv.subtotal), 0) AS subtotal,
     v.desconto AS desconto_global,
     ISNULL(SUM(iv.desconto), 0) AS desconto_itens,
     v.desconto + ISNULL(SUM(iv.desconto), 0) AS desconto_total,
@@ -219,27 +292,6 @@ const result = await req.query(`
 `)
 
   const vendas = result.recordset
-
-  if (produto) {
-    const vendasFiltradas = []
-    for (const venda of vendas) {
-      const itensReq = await request()
-      const itens = await itensReq
-        .input('venda_id', sql.Int, venda.id)
-        .input('produto', sql.VarChar, `%${produto}%`)
-        .query(`
-          SELECT iv.*, p.nome_produto
-          FROM itens_venda iv
-          JOIN produtos p ON iv.produto_id = p.id
-          WHERE iv.venda_id = @venda_id
-          AND p.nome_produto LIKE @produto
-        `)
-      if (itens.recordset.length > 0) {
-        vendasFiltradas.push({ ...venda, itens: itens.recordset })
-      }
-    }
-    return vendasFiltradas
-  }
 
   return vendas
 }
