@@ -31,6 +31,7 @@ const mlEstoqueRoutes = require('./src/routes/mlEstoqueRoutes');
 const grupoRoutes = require('./src/routes/grupoRoutes');
 const nfSaidaRoutes = require('./src/routes/nfSaidaRoutes');
 const estabelecimentoRoutes = require('./src/routes/estabelecimentoRoutes');
+const dashboardRoutes = require('./src/routes/dashboardRoutes');
 
 app.use("/auth", authRoutes);
 app.use("/api", productRoutes)
@@ -46,6 +47,7 @@ app.use('/ml', mlEstoqueRoutes);
 app.use('/api', grupoRoutes);
 app.use('/api', nfSaidaRoutes);
 app.use('/api', estabelecimentoRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // TESTE DE CONEXÃO
 const db = require("./src/config/db");

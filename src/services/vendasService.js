@@ -1,36 +1,55 @@
 const { request, sql } = require('../config/db');
 const nfSaidaService = require('./nfSaidaService')
 
-async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_pagamento, desconto_global = 0, observacoes = '') {
-  
+async function criarVendaComItens(estabelecimento_id,cliente_id,itens,forma_pagamento,desconto_global = 0,observacoes = ''){
+
   let subtotal = 0
   const itensComPreco = []
-  const produtosMap = new Map()
-  
 
   if (itens && itens.length > 0) {
+
     for (const item of itens) {
+
       const estoqueReq = await request()
+
       const produtoResult = await estoqueReq
         .input('produto_id', sql.Int, item.produto_id)
         .input('estabelecimento_id', sql.Int, estabelecimento_id)
-        .query('SELECT * FROM produtos WHERE id = @produto_id AND estabelecimento_id = @estabelecimento_id')
+        .query(`
+          SELECT *
+          FROM produtos
+          WHERE id = @produto_id
+          AND estabelecimento_id = @estabelecimento_id
+        `)
 
       const produto = produtoResult.recordset[0]
 
-  if (!produto) {
-    throw new Error(`Produto ${item.produto_id} não encontrado`)
-  }
+      if (!produto) {
+        throw new Error(
+          `Produto ${item.produto_id} não encontrado`
+        )
+      }
 
-  produtosMap.set(produto.id, produto)
-      if (produto.estoque_atual < item.quantidade) throw new Error(`Estoque insuficiente para o produto ${produto.nome_produto}`)
-    }
+      if (produto.estoque_atual < item.quantidade) {
+        throw new Error(
+          `Estoque insuficiente para o produto ${produto.nome_produto}`
+        )
+      }
 
-      const produto = produtosMap.get(item.produto_id)
       const desconto_item = item.desconto || 0
-      const subtotal_item = (produto.preco * item.quantidade) - desconto_item
+
+      const subtotal_item =
+        (produto.preco * item.quantidade) -
+        desconto_item
+
       subtotal += subtotal_item
-      itensComPreco.push({ ...item, preco_unitario: produto.preco, subtotal: subtotal_item, desconto: desconto_item })
+
+      itensComPreco.push({
+        ...item,
+        preco_unitario: produto.preco,
+        subtotal: subtotal_item,
+        desconto: desconto_item
+      })
     }
   }
 
@@ -39,8 +58,8 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
     subtotal - desconto_global
   )
 
-
   const vendaReq = await request()
+
   const vendaResult = await vendaReq
     .input('estabelecimento_id', sql.Int, estabelecimento_id)
     .input('cliente_id', sql.Int, cliente_id || null)
@@ -52,14 +71,37 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
     .input('observacoes', sql.VarChar, observacoes)
     .input('codigo_venda', sql.VarChar, '')
     .query(`
-      INSERT INTO vendas (estabelecimento_id, cliente_id, forma_pagamento, status, subtotal, desconto, total, observacoes, codigo_venda, data)
+      INSERT INTO vendas (
+        estabelecimento_id,
+        cliente_id,
+        forma_pagamento,
+        status,
+        subtotal,
+        desconto,
+        total,
+        observacoes,
+        codigo_venda,
+        data
+      )
       OUTPUT INSERTED.id
-      VALUES (@estabelecimento_id, @cliente_id, @forma_pagamento, @status, @subtotal, @desconto, @total, @observacoes, @codigo_venda, GETDATE())
+      VALUES (
+        @estabelecimento_id,
+        @cliente_id,
+        @forma_pagamento,
+        @status,
+        @subtotal,
+        @desconto,
+        @total,
+        @observacoes,
+        @codigo_venda,
+        GETDATE()
+      )
     `)
 
   const venda_id = vendaResult.recordset[0].id
 
-  const codigo_venda = `VND${String(venda_id).padStart(5, '0')}`
+  const codigo_venda =
+    `VND${String(venda_id).padStart(5, '0')}`
 
   const updateCodigoReq = await request()
 
@@ -67,13 +109,15 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
     .input('id', sql.Int, venda_id)
     .input('codigo_venda', sql.VarChar, codigo_venda)
     .query(`
-        UPDATE vendas
-        SET codigo_venda = @codigo_venda
-        WHERE id = @id
+      UPDATE vendas
+      SET codigo_venda = @codigo_venda
+      WHERE id = @id
     `)
 
   for (const item of itensComPreco) {
+
     const itemReq = await request()
+
     await itemReq
       .input('venda_id', sql.Int, venda_id)
       .input('produto_id', sql.Int, item.produto_id)
@@ -82,36 +126,47 @@ async function criarVendaComItens(estabelecimento_id, cliente_id, itens, forma_p
       .input('desconto', sql.Decimal(10, 2), item.desconto)
       .input('subtotal', sql.Decimal(10, 2), item.subtotal)
       .query(`
-        INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario, desconto, subtotal)
-        VALUES (@venda_id, @produto_id, @quantidade, @preco_unitario, @desconto, @subtotal)
+        INSERT INTO itens_venda (
+          venda_id,
+          produto_id,
+          quantidade,
+          preco_unitario,
+          desconto,
+          subtotal
+        )
+        VALUES (
+          @venda_id,
+          @produto_id,
+          @quantidade,
+          @preco_unitario,
+          @desconto,
+          @subtotal
+        )
       `)
 
     const estoqueReq = await request()
 
-    const resultadoEstoque =
-      await estoqueReq
+    const resultadoEstoque = await estoqueReq
       .input('quantidade', sql.Int, item.quantidade)
       .input('produto_id', sql.Int, item.produto_id)
       .query(`
         UPDATE produtos
-        SET estoque_atual =
-        estoque_atual - @quantidade
+        SET estoque_atual = estoque_atual - @quantidade
         WHERE id = @produto_id
         AND estoque_atual >= @quantidade
-  `)
-  if (resultadoEstoque.rowsAffected[0] === 0) {
-    throw new Error(
-      'Estoque insuficiente'
-    )
-  } 
+      `)
 
-}
+    if (resultadoEstoque.rowsAffected[0] === 0) {
+      throw new Error('Estoque insuficiente')
+    }
+  }
 
-return {
-  id: venda_id,
-  codigo_venda,
-  total,
-  message: 'Venda criada com sucesso'
+  return {
+    id: venda_id,
+    codigo_venda,
+    total,
+    message: 'Venda criada com sucesso'
+  }
 }
 
 async function listarVendas(estabelecimento_id) {
