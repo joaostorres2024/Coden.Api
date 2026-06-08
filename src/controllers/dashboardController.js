@@ -73,8 +73,27 @@ async function situacao(req, res) {
   }
 }
 
+async function financeiro(req, res) {
+  try {
+    const estabelecimento_id = req.user.estabelecimento_id
+    const { de, ate } = req.query
+
+    const dados = await dashboardService.getFinanceiro(
+      estabelecimento_id,
+      de,
+      ate
+    )
+
+    res.json(dados)
+
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
 module.exports = {
   dashboard,
   grafico,
-  situacao
+  situacao,
+  financeiro 
 }

@@ -47,7 +47,7 @@ app.use('/ml', mlEstoqueRoutes);
 app.use('/api', grupoRoutes);
 app.use('/api', nfSaidaRoutes);
 app.use('/api', estabelecimentoRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+app.use('/api', dashboardRoutes)
 
 // TESTE DE CONEXÃO
 const db = require("./src/config/db");

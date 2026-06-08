@@ -1,29 +1,12 @@
 const express = require('express')
-
 const router = express.Router()
 
-const dashboardController =
-require('../controllers/dashboardController')
+const dashboardController = require('../controllers/dashboardController')
+const authMiddleware = require('../middlewares/authMiddleware')
 
-const auth =
-require('../middlewares/authMiddleware')
-
-router.get(
-  '/',
-  auth,
-  dashboardController.dashboard
-)
-
-router.get(
-  '/grafico',
-  auth,
-  dashboardController.grafico
-)
-
-router.get(
-  '/situacao',
-  auth,
-  dashboardController.situacao
-)
+router.get('/dashboard',          authMiddleware, dashboardController.dashboard)
+router.get('/dashboard/grafico',  authMiddleware, dashboardController.grafico)
+router.get('/dashboard/situacao', authMiddleware, dashboardController.situacao)
+router.get('/dashboard/financeiro', authMiddleware, dashboardController.financeiro)
 
 module.exports = router
