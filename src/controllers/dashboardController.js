@@ -54,25 +54,6 @@ async function grafico(req, res) {
   }
 }
 
-async function situacao(req, res) {
-  try {
-    const estabelecimento_id =
-      req.user.estabelecimento_id
-
-    const dados =
-      await dashboardService.getSituacaoPedidos(
-        estabelecimento_id
-      )
-
-    res.json(dados)
-
-  } catch (err) {
-    res.status(500).json({
-      error: err.message
-    })
-  }
-}
-
 async function financeiro(req, res) {
   try {
     const estabelecimento_id = req.user.estabelecimento_id
@@ -94,6 +75,5 @@ async function financeiro(req, res) {
 module.exports = {
   dashboard,
   grafico,
-  situacao,
   financeiro 
 }

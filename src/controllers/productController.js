@@ -304,10 +304,12 @@ const cols = [
     y += 6
 
     doc.fontSize(8).font('Helvetica-Bold').fillColor('#000')
-      .text(`Total de Produtos: ${produtos.length}`, L, y)
-      .text(`Total Estoque: ${totalEstoqueAtual}`, L + 200, y)
-      .text(`Valor Total Custo: ${formatarReais(totalValorCusto)}`, L + 370, y)
-      .text(`Valor Total Venda: ${formatarReais(totalValorVenda)}`, L + 560, y)
+      .text(`Total de Produtos: ${produtos.length}`, cols[0].x, y, { width: cols[0].w + cols[1].w + cols[2].w + cols[3].w, align: 'left' })
+      .text(`${totalEstoqueAtual}`, cols[4].x, y, { width: cols[4].w, align: cols[4].align })
+      .text('', cols[5].x, y, { width: cols[5].w })
+      .text('', cols[6].x, y, { width: cols[6].w })
+      .text(formatarReais(totalValorCusto), cols[7].x, y, { width: cols[7].w, align: cols[7].align })
+      .text(formatarReais(totalValorVenda), cols[8].x, y, { width: cols[8].w, align: cols[8].align })
 
     y += 20
 

@@ -95,24 +95,6 @@ async function getGrafico(estabelecimento_id, de, ate) {
   return result.recordset
 }
 
-async function getSituacaoPedidos(estabelecimento_id) {
-  const req = await request()
-
-  req.input('estabelecimento_id', sql.Int, estabelecimento_id)
-
-  const result = await req.query(`
-    SELECT
-      status,
-      COUNT(*) quantidade,
-      ISNULL(SUM(total),0) valor
-    FROM vendas
-    WHERE estabelecimento_id = @estabelecimento_id
-    GROUP BY status
-  `)
-
-  return result.recordset
-}
-
 async function getFinanceiro(estabelecimento_id, de, ate) {
   const req = await request()
 
@@ -170,6 +152,5 @@ module.exports = {
   getDashboard,
   getProdutosVendidos,
   getGrafico,
-  getSituacaoPedidos,
   getFinanceiro         
 }

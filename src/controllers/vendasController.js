@@ -206,10 +206,10 @@ async function relatorioVendasPDF(req, res) {
     const ticketMedio = totalVendas > 0 ? totalGeral / totalVendas : 0
 
     doc.fontSize(8).font('Helvetica-Bold').fillColor('#000')
-      .text(`Total de Vendas: ${totalVendas}`, L, y)
-      .text(`Total Desconto: ${formatarReais(totalDesconto)}`, L + 200, y)
-      .text(`Ticket Médio: ${formatarReais(ticketMedio)}`, L + 420, y)
-      .text(`Total Geral: ${formatarReais(totalGeral)}`, L + 600, y)
+      .text(`Total de Vendas: ${totalVendas}`, cols[0].x, y, { width: cols[0].w + cols[1].w + cols[2].w + cols[3].w, align: 'left' })
+      .text('-', cols[4].x, y, { width: cols[4].w, align: cols[4].align })
+      .text(formatarReais(totalDesconto), cols[5].x, y, { width: cols[5].w, align: cols[5].align })
+      .text(formatarReais(totalGeral), cols[6].x, y, { width: cols[6].w, align: cols[6].align })
 
     y += 16
 

@@ -14,7 +14,9 @@ app.use(cors({
   credentials: false
 }))
 
-app.use(express.json());
+// ── LIMITE DE PAYLOAD — deve vir antes das rotas ──
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ limit: '10mb', extended: true }))
 
 // ROTAS
 const authRoutes = require("./src/routes/authRoutes");
@@ -47,7 +49,7 @@ app.use('/ml', mlEstoqueRoutes);
 app.use('/api', grupoRoutes);
 app.use('/api', nfSaidaRoutes);
 app.use('/api', estabelecimentoRoutes);
-app.use('/api', dashboardRoutes)
+app.use('/api', dashboardRoutes);
 
 // TESTE DE CONEXÃO
 const db = require("./src/config/db");
