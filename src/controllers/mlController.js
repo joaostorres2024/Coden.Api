@@ -53,18 +53,25 @@ async function callback(req, res) {
 
     await salvarToken({ ...data, user_id: userId });
 
-    res.send(`
-      <html>
-        <body>
-          <script>
+res.send(`
+  <html>
+    <body>
+      <script>
+        try {
+          if (window.opener) {
             window.opener.location.reload();
-            window.close();
-          </script>
-          <p>Conta conectada, fechando...</p>
-        </body>
-      </html>
-    `);
+          }
 
+          window.open('', '_self');
+          window.close();
+        } catch (e) {
+          console.error(e);
+        }
+      </script>
+      <p>Conta conectada, fechando...</p>
+    </body>
+  </html>
+`);
   } catch (err) {
     console.error('Erro no callback ML:', err.response?.data || err.message);
 
