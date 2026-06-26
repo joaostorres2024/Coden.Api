@@ -26,6 +26,7 @@ async function getDashboard(estabelecimento_id, de, ate) {
       ISNULL(SUM(total),0) total_vendas,
       ISNULL(AVG(total),0) ticket_medio
     FROM vendas
+    WHERE forma_pagamento IN ('pix', 'dinheiro', 'cartao')
     ${where}
   `)
 
