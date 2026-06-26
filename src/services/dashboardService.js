@@ -104,6 +104,7 @@ async function getFinanceiro(estabelecimento_id, de, ate) {
   let where = `
     WHERE v.estabelecimento_id = @estabelecimento_id
     AND v.status = 'concluida'
+    AND v.forma_pagamento IN ('pix', 'dinheiro', 'cartao')
   `
 
   if (de) {
@@ -118,12 +119,15 @@ async function getFinanceiro(estabelecimento_id, de, ate) {
 
   const result = await req.query(`
     SELECT
-      ISNULL(SUM(v.subtotal), 0)                     AS faturamentoSemFrete,
-      ISNULL(SUM(iv.quantidade * p.preco_custo), 0)  AS precoCusto
-    FROM vendas v
-    JOIN itens_venda iv ON iv.venda_id = v.id
-    JOIN produtos     p  ON p.id       = iv.produto_id
-    ${where}
+      (SELECT ISNULL(SUM(v.total), 0)
+      FROM vendas v
+      ${where}) AS faturamentoSemFrete,
+
+      (SELECT ISNULL(SUM(iv.quantidade * p.preco_custo), 0)
+      FROM vendas v
+      JOIN itens_venda iv ON iv.venda_id = v.id
+      JOIN produtos p ON p.id = iv.produto_id
+      ${where}) AS precoCusto
   `)
 
   const row = result.recordset[0]
