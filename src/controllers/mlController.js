@@ -35,9 +35,13 @@ async function callback(req, res) {
   try {
     const { code, state } = req.query;
 
-    if (!code) return res.status(400).json({ error: 'Code não informado' });
+    if (!code) {
+      return res.status(400).send('Code não informado');
+    }
 
-    const { userId } = JSON.parse(Buffer.from(state, 'base64').toString());
+    const { userId } = JSON.parse(
+      Buffer.from(state, 'base64').toString()
+    );
 
     const { data } = await axios.post(`${mlConfig.baseUrl}/oauth/token`, {
       grant_type: 'authorization_code',
@@ -49,12 +53,34 @@ async function callback(req, res) {
 
     await salvarToken({ ...data, user_id: userId });
 
-    res.json({ message: 'Conta ML vinculada com sucesso!', ml_user_id: data.user_id });
+    res.send(`
+      <html>
+        <body>
+          <script>
+            window.opener.location.reload();
+            window.close();
+          </script>
+          <p>Conta conectada, fechando...</p>
+        </body>
+      </html>
+    `);
+
   } catch (err) {
     console.error('Erro no callback ML:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Falha na autenticação com ML', detalhe: err.response?.data || err.message });
+
+    res.send(`
+      <html>
+        <body>
+          <script>
+            alert('Erro ao conectar Mercado Livre');
+            window.close();
+          </script>
+        </body>
+      </html>
+    `);
   }
 }
+``
 
 async function desconectar(req, res) {
   try {
