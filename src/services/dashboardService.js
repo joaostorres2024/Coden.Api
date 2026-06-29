@@ -40,6 +40,7 @@ async function getProdutosVendidos(estabelecimento_id, de, ate) {
   let where = `
     WHERE v.estabelecimento_id = @estabelecimento_id
     AND v.status = 'concluida'
+    AND v.forma_pagamento IN ('dinheiro', 'pix', 'cartao')
   `
 
   if (de) {
