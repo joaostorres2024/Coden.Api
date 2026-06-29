@@ -177,7 +177,8 @@ async function listarVendas(estabelecimento_id) {
       SELECT v.*, c.nome_cliente
       FROM vendas v
       LEFT JOIN clientes c ON v.cliente_id = c.id
-      WHERE v.estabelecimento_id = @estabelecimento_id
+      WHERE v.estabelecimento_id = @estabelecimento_id AND v.status = 'concluida'
+      AND v.forma_pagamento IN ('pix', 'dinheiro', 'cartao')
       ORDER BY v.data DESC
     `)
   return result.recordset
