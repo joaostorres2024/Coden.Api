@@ -2,10 +2,10 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { query, sql } = require("../config/db");
 
-async function login(email, senha) {
+async function login(usuario, senha) {
     const rows = await query(
-        "SELECT * FROM usuarios WHERE email = @param0",
-        [email]
+        "SELECT * FROM usuarios WHERE usuario = @param0",
+        [usuario]
     );
 
     const user = rows[0];
@@ -21,20 +21,20 @@ async function login(email, senha) {
     }
 
     const token = jwt.sign(
-        { 
-            id: user.id, 
-            email: user.email,
+        {
+            id: user.id,
+            usuario: user.usuario,
             nome: user.nome,
             estabelecimento_id: user.estabelecimento_id
         },
-        process.env.JWT_SECRET, 
+        process.env.JWT_SECRET,
         { expiresIn: "1d" }
     );
 
     return token;
 }
 
-async function createUser({ nome, email, senha }) {
+async function createUser({ nome, usuario, senha }) {
     const senhaHash = await bcrypt.hash(senha, 10)
 
     const rows = await query(
@@ -44,8 +44,8 @@ async function createUser({ nome, email, senha }) {
     const estabelecimento_id = rows[0].id
 
     await query(
-        "INSERT INTO usuarios (nome, email, senha, estabelecimento_id) VALUES (@param0, @param1, @param2, @param3)",
-        [nome, email, senhaHash, estabelecimento_id]
+        "INSERT INTO usuarios (nome, usuario, senha, estabelecimento_id) VALUES (@param0, @param1, @param2, @param3)",
+        [nome, usuario, senhaHash, estabelecimento_id]
     )
 }
 

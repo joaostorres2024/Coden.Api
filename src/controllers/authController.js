@@ -5,19 +5,19 @@ async function register(req, res) {
         await authService.createUser(req.body);
         res.status(201).send("Usuário criado");
     } catch (err) {
-        console.error(err); 
+        console.error(err);
         res.status(500).send(err.message);
     }
 }
 
 async function login(req, res) {
     try {
-        const { email, senha } = req.body;
-        const token = await authService.login(email, senha);
+        const { usuario, senha } = req.body;
+        const token = await authService.login(usuario, senha);
 
         res.json({ token });
     } catch (err) {
-        console.error(err); 
+        console.error(err);
         res.status(400).send(err.message);
     }
 }

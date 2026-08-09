@@ -34,8 +34,8 @@ async function buscarEstabelecimento(estabelecimento_id) {
 
 async function atualizarEstabelecimento(estabelecimento_id, data) {
   const {
-    nome, nome_fantasia, cnpj, inscricao_estadual, inscricao_municipal,
-    regime_tributario, cep, endereco, numero, complemento, bairro,
+    nome, nome_fantasia, cnpj,
+    natureza_juridica, capital_social, cep, endereco, numero, complemento, bairro,
     cidade, uf, telefone, email, site, responsavel, cargo, logo
   } = data
 
@@ -45,9 +45,8 @@ async function atualizarEstabelecimento(estabelecimento_id, data) {
     .input('nome',                sql.VarChar,      nome)
     .input('nome_fantasia',       sql.VarChar,      nome_fantasia)
     .input('cnpj',                sql.VarChar,      cnpj)
-    .input('inscricao_estadual',  sql.VarChar,      inscricao_estadual)
-    .input('inscricao_municipal', sql.VarChar,      inscricao_municipal)
-    .input('regime_tributario',   sql.VarChar,      regime_tributario)
+    .input('natureza_juridica',   sql.VarChar,      natureza_juridica)
+    .input('capital_social',      sql.VarChar,      capital_social)
     .input('cep',                 sql.VarChar,      cep)
     .input('endereco',            sql.VarChar,      endereco)
     .input('numero',              sql.VarChar,      numero)
@@ -66,9 +65,8 @@ async function atualizarEstabelecimento(estabelecimento_id, data) {
         nome                = @nome,
         nome_fantasia       = @nome_fantasia,
         cnpj                = @cnpj,
-        inscricao_estadual  = @inscricao_estadual,
-        inscricao_municipal = @inscricao_municipal,
-        regime_tributario   = @regime_tributario,
+        natureza_juridica   = @natureza_juridica,
+        capital_social      = @capital_social,
         cep                 = @cep,
         endereco            = @endereco,
         numero              = @numero,

@@ -106,11 +106,10 @@ doc.fontSize(10).font('Helvetica-Bold').fillColor('#000')
   .text(estabelecimento.nome || 'EMITENTE', L + 4, y + 4, { width: 304 })
 doc.fontSize(7).font('Helvetica').fillColor('#333')
 doc.text(`CNPJ: ${estabelecimento.cnpj || '-'}`, L + 4, y + 18)
-doc.text(`IE: ${estabelecimento.inscricao_estadual || '-'}  IM: ${estabelecimento.inscricao_municipal || '-'}`, L + 4, y + 28)
 doc.text(`${estabelecimento.endereco || ''}, ${estabelecimento.numero || ''} - ${estabelecimento.bairro || ''}`, L + 4, y + 38)
 doc.text(`${estabelecimento.cidade || ''} - ${estabelecimento.uf || ''}  CEP: ${estabelecimento.cep || ''}`, L + 4, y + 48)
 doc.text(`Tel: ${estabelecimento.telefone || '-'}`, L + 4, y + 58)
-doc.text(`E-mail: ${estabelecimento.email || '-'}`, L + 4, y + 68)
+doc.text(`E-mail: ${estabelecimento.usuario || '-'}`, L + 4, y + 68)
 
 // DANFE (centro) — 110
 box(L + 310, y, 110, 90)
