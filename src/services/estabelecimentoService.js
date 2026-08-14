@@ -35,7 +35,7 @@ async function buscarEstabelecimento(estabelecimento_id) {
 async function atualizarEstabelecimento(estabelecimento_id, data) {
   const {
     nome, nome_fantasia, cnpj,
-    natureza_juridica, capital_social, cep, endereco, numero, complemento, bairro,
+    natureza_juridica, capital_social, cnae, cep, endereco, numero, complemento, bairro,
     cidade, uf, telefone, email, site, responsavel, cargo, logo
   } = data
 
@@ -47,6 +47,7 @@ async function atualizarEstabelecimento(estabelecimento_id, data) {
     .input('cnpj',                sql.VarChar,      cnpj)
     .input('natureza_juridica',   sql.VarChar,      natureza_juridica)
     .input('capital_social',      sql.VarChar,      capital_social)
+    .input('cnae',                sql.VarChar,      cnae)
     .input('cep',                 sql.VarChar,      cep)
     .input('endereco',            sql.VarChar,      endereco)
     .input('numero',              sql.VarChar,      numero)
@@ -67,6 +68,7 @@ async function atualizarEstabelecimento(estabelecimento_id, data) {
         cnpj                = @cnpj,
         natureza_juridica   = @natureza_juridica,
         capital_social      = @capital_social,
+        cnae                = @cnae,
         cep                 = @cep,
         endereco            = @endereco,
         numero              = @numero,
